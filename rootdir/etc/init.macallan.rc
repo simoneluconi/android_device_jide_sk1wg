@@ -25,7 +25,9 @@ on init
     write /sys/class/android_usb/android0/iSerial ${ro.serialno}
 
 on fs
-    mount_all /vendor/etc/fstab.macallan --late
+    # Everything that is not first_stage_mount (/data, /misc). Not
+    # "--late": that only mounts "latemount" entries.
+    mount_all /vendor/etc/fstab.macallan
     swapon_all /vendor/etc/fstab.macallan
 
 on post-fs-data
@@ -33,9 +35,6 @@ on post-fs-data
     mkdir /data/vendor/wifi/wpa 0770 wifi wifi
     mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
     mkdir /data/vendor/mpu 0770 system system
-
-    # Tell vold that /data is ready (no FBE on this kernel)
-    setprop vold.post_fs_data_done 1
 
 on boot
     # eMMC and microSD read-ahead

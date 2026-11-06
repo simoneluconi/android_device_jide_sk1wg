@@ -51,9 +51,25 @@ PRODUCT_PACKAGES += \
     libshim_atomic \
     libshim_graphicbuffer
 
-# OpenGL ES 3.0 (Tegra 4 has no ES 3.1)
+# Graphics properties. Tegra 4's GPU is OpenGL ES 2.0 only (stock declares
+# 131072), but the version below is what html6405's Exynos 4 trees declare
+# for their ES 2.0 Mali-400 on Android 14, which is known to work; revisit
+# if an app picks an ES 3 path and fails.
 PRODUCT_VENDOR_PROPERTIES += \
-    ro.opengles.version=196608
+    ro.opengles.version=196610 \
+    ro.sf.lcd_density=240 \
+    ro.zygote.disable_gl_preload=1 \
+    debug.hwui.renderer=opengl \
+    debug.hwui.render_dirty_regions=false \
+    debug.sf.enable_gl_backpressure=1 \
+    ro.egl.destroy_after_detach=true
+
+# ART: 4 cores, but keep dex2oat's memory modest on first boot (apps are
+# compiled on the device, see "Space" below)
+PRODUCT_VENDOR_PROPERTIES += \
+    dalvik.vm.dex2oat-Xmx=512m \
+    dalvik.vm.dex2oat-threads=2 \
+    dalvik.vm.boot-dex2oat-threads=4
 
 # Health (legacy 2.0 service with the default battery monitor: the CW2015
 # fuel gauge is a standard power_supply)
