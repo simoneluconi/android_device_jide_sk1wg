@@ -12,6 +12,13 @@ on init
     # zram: no readahead clusters
     write /proc/sys/vm/page-cluster 0
 
+    # adbd only speaks FunctionFS: android_usb's "adb" function becomes
+    # f_ffs (android.c builds FunctionFS in), as on the stock 5.1 recovery
+    mkdir /dev/usb-ffs 0770 shell shell
+    mkdir /dev/usb-ffs/adb 0770 shell shell
+    mount functionfs adb /dev/usb-ffs/adb uid=2000,gid=2000
+    write /sys/class/android_usb/android0/f_ffs/aliases adb
+
     # The android_usb gadget's serial number and strings
     write /sys/class/android_usb/android0/iManufacturer ${ro.product.manufacturer}
     write /sys/class/android_usb/android0/iProduct ${ro.product.model}

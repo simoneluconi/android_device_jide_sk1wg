@@ -28,10 +28,16 @@ PRODUCT_SHIPPING_API_LEVEL := 22
 # Dalvik: 2 GB of RAM
 $(call inherit-product, frameworks/native/build/tablet-10in-xhdpi-2048-dalvik-heap.mk)
 
-# Init and fstab
+# Init and fstab. SK1WG_SDCARD_ROOT=true builds a test variant that runs
+# entirely from the microSD card (rootdir/etc/fstab.macallan.sdcard).
+ifeq ($(SK1WG_SDCARD_ROOT),true)
+SK1WG_FSTAB := $(LOCAL_PATH)/rootdir/etc/fstab.macallan.sdcard
+else
+SK1WG_FSTAB := $(LOCAL_PATH)/rootdir/etc/fstab.macallan
+endif
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/rootdir/etc/fstab.macallan:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.macallan \
-    $(LOCAL_PATH)/rootdir/etc/fstab.macallan:$(TARGET_COPY_OUT_RAMDISK)/fstab.macallan \
+    $(SK1WG_FSTAB):$(TARGET_COPY_OUT_VENDOR)/etc/fstab.macallan \
+    $(SK1WG_FSTAB):$(TARGET_COPY_OUT_RAMDISK)/fstab.macallan \
     $(LOCAL_PATH)/rootdir/etc/init.macallan.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.macallan.rc \
     $(LOCAL_PATH)/rootdir/etc/init.macallan.usb.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.macallan.usb.rc \
     $(LOCAL_PATH)/rootdir/etc/ueventd.macallan.rc:$(TARGET_COPY_OUT_VENDOR)/etc/ueventd.rc
