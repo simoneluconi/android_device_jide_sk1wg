@@ -1,0 +1,54 @@
+# sk1wg blobs for vendor/jide/sk1wg, from the stock Remix OS 2.0.305
+# (B2016061701, Android 5.1.1) /system: the official system.img unsparsed
+# (tools/simg2img.py) and dumped with debugfs, i.e. a directory holding
+# system/. Everything goes to /vendor.
+
+# Graphics - NVIDIA T114 OpenGL ES (EGL loader tag "tegra"). The EGL and
+# GLES wrappers have /system/lib/ paths built in: extract-files.sh
+# rewrites them to /vendor/lib/ (same length).
+system/lib/egl/libEGL_tegra.so:vendor/lib/egl/libEGL_tegra.so
+system/lib/egl/libEGL_tegra_impl.so:vendor/lib/egl/libEGL_tegra_impl.so
+system/lib/egl/libGLESv1_CM_tegra.so:vendor/lib/egl/libGLESv1_CM_tegra.so
+system/lib/egl/libGLESv1_CM_tegra_impl.so:vendor/lib/egl/libGLESv1_CM_tegra_impl.so
+system/lib/egl/libGLESv2_tegra.so:vendor/lib/egl/libGLESv2_tegra.so
+system/lib/egl/libGLESv2_tegra_impl.so:vendor/lib/egl/libGLESv2_tegra_impl.so
+
+# Graphics - gralloc0 and HWC 1.x (shims: BoardConfig.mk, shims/)
+system/lib/hw/gralloc.tegra.so:vendor/lib/hw/gralloc.tegra.so
+system/lib/hw/hwcomposer.tegra.so:vendor/lib/hw/hwcomposer.tegra.so
+system/lib/libsecure_hdcp_up.so:vendor/lib/libsecure_hdcp_up.so
+
+# Graphics - NVIDIA runtime (the closure of the libraries above)
+system/vendor/lib/libardrv_dynamic.so:vendor/lib/libardrv_dynamic.so
+system/vendor/lib/libcplconnectclient.so:vendor/lib/libcplconnectclient.so
+system/vendor/lib/libnvapputil.so:vendor/lib/libnvapputil.so
+system/vendor/lib/libnvcms.so:vendor/lib/libnvcms.so
+system/vendor/lib/libnvcpl.so:vendor/lib/libnvcpl.so
+system/vendor/lib/libnvddk_2d.so:vendor/lib/libnvddk_2d.so
+system/vendor/lib/libnvddk_2d_v2.so:vendor/lib/libnvddk_2d_v2.so
+system/vendor/lib/libnvglsi.so:vendor/lib/libnvglsi.so
+system/vendor/lib/libnvos.so:vendor/lib/libnvos.so
+system/vendor/lib/libnvrm.so:vendor/lib/libnvrm.so
+system/vendor/lib/libnvrm_graphics.so:vendor/lib/libnvrm_graphics.so
+system/vendor/lib/libnvtestio.so:vendor/lib/libnvtestio.so
+system/vendor/lib/libnvtestresults.so:vendor/lib/libnvtestresults.so
+system/vendor/lib/libnvwsi.so:vendor/lib/libnvwsi.so
+system/vendor/lib/libtsec_wrapper.so:vendor/lib/libtsec_wrapper.so
+system/vendor/lib/libtsechdcp.so:vendor/lib/libtsechdcp.so
+
+# Firmware - AVP (video/audio offload) and the host1x engines
+system/etc/firmware/nvavp_aud_ucode.bin:vendor/firmware/nvavp_aud_ucode.bin
+system/etc/firmware/nvavp_os_0ff00000.bin:vendor/firmware/nvavp_os_0ff00000.bin
+system/etc/firmware/nvavp_os_eff00000.bin:vendor/firmware/nvavp_os_eff00000.bin
+system/etc/firmware/nvavp_vid_ucode_alt.bin:vendor/firmware/nvavp_vid_ucode_alt.bin
+system/etc/firmware/tegra11x/nvhost_msenc02.fw:vendor/firmware/tegra11x/nvhost_msenc02.fw
+system/etc/firmware/tegra11x/nvhost_tsec.fw:vendor/firmware/tegra11x/nvhost_tsec.fw
+
+# Wi-Fi - BCM43341 firmware and NVRAM (paths built into the kernel config)
+system/vendor/firmware/bcm43341/fw_bcmdhd.bin:vendor/firmware/bcm43341/fw_bcmdhd.bin
+system/vendor/firmware/bcm43341/fw_bcmdhd_apsta.bin:vendor/firmware/bcm43341/fw_bcmdhd_apsta.bin
+system/vendor/firmware/bcm43341/fw_bcmdhd_p2p.bin:vendor/firmware/bcm43341/fw_bcmdhd_p2p.bin
+system/etc/nvram_43341_rev4.txt:vendor/etc/wifi/nvram_43341_rev4.txt
+
+# Bluetooth - BCM43341 patchram
+system/etc/firmware/BCM43341B0_002.001.014.0018.0000_USI_WM-BAN-BM-13_CL15_TESTONLY.hcd:vendor/firmware/BCM43341B0_002.001.014.0018.0000_USI_WM-BAN-BM-13_CL15_TESTONLY.hcd

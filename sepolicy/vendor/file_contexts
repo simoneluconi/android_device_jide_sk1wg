@@ -1,0 +1,21 @@
+# Bring-up vendor policy for the sk1wg (SELinux is permissive for now):
+# labels for the NVIDIA device nodes and the eMMC partitions.
+
+# Tegra host1x, nvmap, display controllers
+/dev/nvhost-.*                                                  u:object_r:gpu_device:s0
+/dev/nvmap                                                      u:object_r:gpu_device:s0
+/dev/knvmap                                                     u:object_r:gpu_device:s0
+/dev/tegra_dc_[0-9]+                                            u:object_r:graphics_device:s0
+/dev/tegra_dc_ctrl                                              u:object_r:graphics_device:s0
+/dev/tegra-throughput                                           u:object_r:gpu_device:s0
+
+# Bluetooth UART (BCM43341)
+/dev/ttyHS2                                                     u:object_r:hci_attach_dev:s0
+
+# eMMC partitions (stock GPT names)
+/dev/block/platform/sdhci-tegra\.3/by-name/APP                  u:object_r:system_block_device:s0
+/dev/block/platform/sdhci-tegra\.3/by-name/CAC                  u:object_r:vendor_block_device:s0
+/dev/block/platform/sdhci-tegra\.3/by-name/UDA                  u:object_r:userdata_block_device:s0
+/dev/block/platform/sdhci-tegra\.3/by-name/LNX                  u:object_r:boot_block_device:s0
+/dev/block/platform/sdhci-tegra\.3/by-name/SOS                  u:object_r:recovery_block_device:s0
+/dev/block/platform/sdhci-tegra\.3/by-name/MSC                  u:object_r:misc_block_device:s0

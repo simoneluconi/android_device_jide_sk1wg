@@ -1,0 +1,108 @@
+# Init for the Jide Remix Ultra Tablet (sk1wg), NVIDIA T114 "macallan".
+# Adapted from the stock Remix OS 2.0.305 init.macallan.rc: kept the
+# Tegra power, CPU, display and device-node settings; dropped Jide's and
+# NVIDIA's services that LineageOS does not use.
+
+import /vendor/etc/init/hw/init.macallan.usb.rc
+
+on early-init
+    mount debugfs debugfs /sys/kernel/debug mode=0755
+
+on init
+    # zram: no readahead clusters
+    write /proc/sys/vm/page-cluster 0
+
+    # The android_usb gadget's serial number and strings
+    write /sys/class/android_usb/android0/iManufacturer ${ro.product.manufacturer}
+    write /sys/class/android_usb/android0/iProduct ${ro.product.model}
+    write /sys/class/android_usb/android0/iSerial ${ro.serialno}
+
+on fs
+    mount_all /vendor/etc/fstab.macallan --late
+    swapon_all /vendor/etc/fstab.macallan
+
+on post-fs-data
+    mkdir /data/vendor/wifi 0770 wifi wifi
+    mkdir /data/vendor/wifi/wpa 0770 wifi wifi
+    mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
+    mkdir /data/vendor/mpu 0770 system system
+
+    # Tell vold that /data is ready (no FBE on this kernel)
+    setprop vold.post_fs_data_done 1
+
+on boot
+    # eMMC and microSD read-ahead
+    write /sys/block/mmcblk0/queue/read_ahead_kb 2048
+    write /sys/block/mmcblk1/queue/read_ahead_kb 2048
+
+    # Display and backlight
+    chown system system /sys/class/backlight/pwm-backlight/brightness
+    chmod 0664 /sys/class/backlight/pwm-backlight/brightness
+    chown system system /sys/class/graphics/fb0/device/smartdimmer/enable
+    chown system system /sys/class/graphics/fb0/device/smartdimmer/aggressiveness
+    chown system system /sys/class/graphics/fb0/device/cmu_enable
+    chown system system /sys/class/graphics/fb0/device/nvdps
+    chown system system /sys/devices/tegradc.0/enable
+    chown system system /sys/devices/tegradc.1/enable
+
+    # GPU, AVP and Tegra caps
+    chown system system /sys/devices/platform/host1x/gr3d/enable_3d_scaling
+    chown system system /sys/devices/platform/host1x/nvavp/boost_sclk
+    chown system system /sys/kernel/tegra_cap/core_cap_level
+    chown system system /sys/kernel/tegra_cap/core_cap_state
+    chown system system /sys/kernel/tegra_cap/cbus_cap_level
+    chown system system /sys/kernel/tegra_cap/cbus_cap_state
+    chown system system /sys/module/cpu_tegra/parameters/cpu_user_cap
+
+    # CPU: interactive governor and cpuquiet "runnable", as stock
+    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/no_lp 0
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpufreq/interactive/target_loads "85 1000000:90"
+    write /sys/devices/system/cpu/cpufreq/interactive/min_sample_time 90000
+    write /sys/devices/system/cpu/cpufreq/interactive/timer_rate 30000
+    write /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay 210000
+    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 714000
+    write /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load 99
+    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 1
+    write /sys/devices/system/cpu/cpuquiet/current_governor runnable
+    write /sys/module/cpuidle_t11x/parameters/cpu_power_gating_in_idle 31
+    write /sys/module/cpuidle_t11x/parameters/slow_cluster_power_gating_noncpu 1
+    write /sys/module/cpuidle/parameters/power_down_in_idle 1
+    chown system system /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/no_lp
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/go_maxspeed_load
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/max_boost
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+
+    # Android cpusets: four cores (cpuquiet hotplugs 1-3; the kernel keeps
+    # the requested cores and gives them back when they come online)
+    write /dev/cpuset/foreground/cpus 0-3
+    write /dev/cpuset/background/cpus 0
+    write /dev/cpuset/system-background/cpus 0-1
+    write /dev/cpuset/top-app/cpus 0-3
+    write /dev/cpuset/restricted/cpus 0-1
+
+    # Input devices' "enabled" switches
+    chown system system /sys/class/input/input0/enabled
+    chown system system /sys/class/input/input1/enabled
+    chown system system /sys/class/input/input2/enabled
+
+    # Bluetooth (BCM43341 on ttyHS2)
+    chmod 0660 /sys/class/rfkill/rfkill0/state
+    chmod 0660 /sys/class/rfkill/rfkill0/type
+    write /sys/class/rfkill/rfkill0/state 0
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
+    chmod 0660 /dev/ttyHS2
+    chown bluetooth bluetooth /dev/ttyHS2
+
+    # Wi-Fi: bcmdhd's firmware path parameter is written by the Wi-Fi HAL
+    chown wifi wifi /sys/module/bcmdhd/parameters/firmware_path
+    chmod 0660 /sys/module/bcmdhd/parameters/firmware_path
+
+on property:sys.boot_completed=1
+    # The interactive governor's boost floor once boot is done
+    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 1020000

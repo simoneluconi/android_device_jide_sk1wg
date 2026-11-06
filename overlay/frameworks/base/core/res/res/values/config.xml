@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SPDX-FileCopyrightText: 2026 The JideRemixTabletRevived Project
+    SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- Wi-Fi only tablet -->
+    <bool name="config_voice_capable">false</bool>
+    <bool name="config_sms_capable">false</bool>
+    <bool name="config_mobile_data_capable">false</bool>
+
+    <!-- No light sensor HAL yet (CM3217 comes later) -->
+    <bool name="config_automatic_brightness_available">false</bool>
+
+    <!-- pwm-backlight: 0..255 -->
+    <integer name="config_screenBrightnessSettingMinimum">10</integer>
+    <integer name="config_screenBrightnessSettingDefault">102</integer>
+    <integer name="config_screenBrightnessSettingMaximum">255</integer>
+
+    <!-- The keyboard dock: hardware keyboard is the normal input -->
+    <bool name="config_showNavigationBar">true</bool>
+
+    <!-- Low-end GPU: no blur, simpler effects -->
+    <bool name="config_supportsMultiWindow">true</bool>
+
+    <!-- Rotation: landscape is the natural orientation of this tablet -->
+    <bool name="config_supportAutoRotation">true</bool>
+
+    <!-- zram is set up in the fstab -->
+    <bool name="config_zramWriteback">false</bool>
+</resources>

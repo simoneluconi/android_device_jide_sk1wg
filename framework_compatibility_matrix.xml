@@ -1,0 +1,23 @@
+<!-- Legacy HIDL HALs this device still uses, which no Android 14
+     framework matrix (FCM level 5 and up) lists any more -->
+<compatibility-matrix version="1.0" type="framework">
+    <!-- SurfaceFlinger configstore (base_vendor.mk) -->
+    <hal format="hidl" optional="true">
+        <name>android.hardware.configstore</name>
+        <version>1.1</version>
+        <interface>
+            <name>ISurfaceFlingerConfigs</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <!-- Legacy health@2.0 service (legacy/health) -->
+    <hal format="hidl" optional="true">
+        <name>android.hardware.health</name>
+        <version>2.0</version>
+        <interface>
+            <name>IHealth</name>
+            <instance>default</instance>
+            <instance>backup</instance>
+        </interface>
+    </hal>
+</compatibility-matrix>

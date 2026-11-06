@@ -1,0 +1,11 @@
+//
+// SPDX-FileCopyrightText: 2026 The JideRemixTabletRevived Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+license {
+    name: "device_jide_sk1wg_license",
+    visibility: [":__subpackages__"],
+    license_kinds: ["SPDX-license-identifier-Apache-2.0"],
+    license_text: ["LICENSE"],
+}

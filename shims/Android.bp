@@ -1,0 +1,26 @@
+//
+// SPDX-FileCopyrightText: 2026 The JideRemixTabletRevived Project
+// SPDX-License-Identifier: Apache-2.0
+//
+// Shims for NVIDIA's Android 5.1 graphics blobs, added to them with
+// TARGET_LD_SHIM_LIBS (BoardConfig.mk).
+
+package {
+    default_applicable_licenses: ["//device/jide/sk1wg:device_jide_sk1wg_license"],
+}
+
+cc_library_shared {
+    name: "libshim_atomic",
+    vendor: true,
+    srcs: ["atomic.c"],
+    cflags: ["-Wall", "-Werror"],
+}
+
+cc_library_shared {
+    name: "libshim_graphicbuffer",
+    vendor: true,
+    srcs: ["graphicbuffer.cpp"],
+    shared_libs: ["libui", "libutils", "libcutils"],
+    header_libs: ["libnativebase_headers"],
+    cflags: ["-Wall", "-Werror"],
+}
