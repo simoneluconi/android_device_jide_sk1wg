@@ -18,6 +18,15 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
 TARGET_SCREEN_HEIGHT := 1080
 TARGET_SCREEN_WIDTH := 1920
 
+# Bring-up: adb on from the first boot, without the key prompt (the
+# display may not work yet). vendor/lineage/config/common.mk turns it into
+# ro.adb.secure=0, which also makes the build add persist.sys.usb.config=adb;
+# set here for userdebug/eng only.
+# TODO: drop once the display and the setup wizard work.
+ifneq ($(TARGET_BUILD_VARIANT),user)
+WITH_ADB_INSECURE := true
+endif
+
 # LineageOS: the "mini" Wi-Fi tablet set (fewer bundled apps; the 1000 MB
 # system partition is tight)
 $(call inherit-product, vendor/lineage/config/common_mini_tablet_wifionly.mk)
