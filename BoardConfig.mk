@@ -45,6 +45,9 @@ BOARD_KERNEL_CMDLINE := androidboot.hardware=macallan androidboot.selinux=permis
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x01000000 --tags_offset 0x00000100 --second_offset 0x00f00000
 TARGET_KERNEL_SOURCE := kernel/jide/sk1wg
 TARGET_KERNEL_CONFIG := lineageos_sk1wg_defconfig
+# The few =m modules (none needed) go to /system/lib/modules: with vendor
+# inside system, kernel.mk's vendor install lists the wrong paths
+NEED_KERNEL_MODULE_SYSTEM := true
 TARGET_KERNEL_CLANG_COMPILE := false
 TARGET_KERNEL_LLVM_BINUTILS := false
 KERNEL_TOOLCHAIN := $(realpath $(TOP))/prebuilts/gcc/$(HOST_OS)-x86/arm/arm-linux-androideabi-4.9/bin
