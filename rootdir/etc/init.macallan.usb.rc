@@ -1,5 +1,8 @@
-# USB gadget for the sk1wg: the 3.4 kernel's android_usb with f_adb
-# (/dev/android_adb), NVIDIA's USB IDs as in the stock Remix OS so Windows
+# USB gadget for the sk1wg: the 3.4 kernel's android_usb, its "adb"
+# function aliased to FunctionFS (init.macallan.rc; android.c enables it
+# once adbd has written its descriptors). AOSP's init.usb.rc reacts to the
+# same properties first; these actions run after it and set the final
+# state. NVIDIA's USB IDs as in the stock Remix OS so Windows
 # reuses the drivers it already has: 7102 for MTP or PTP alone, 7100 when
 # adb is on. Stock has no adb-only configuration: "adb" also exposes MTP
 # (idle unless the MTP service runs), so it keeps the 7100 interface layout.
