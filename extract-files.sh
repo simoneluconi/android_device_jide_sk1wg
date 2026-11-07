@@ -34,6 +34,20 @@ function blob_fixup() {
         vendor/lib/egl/libGLESv1_CM_tegra.so | vendor/lib/egl/libGLESv2_tegra.so)
             sed -i "s|/system/lib/|/vendor/lib/|g" "${2}"
             ;;
+        # create_graphic_buffer() allocates the GraphicBuffer itself with
+        # operator new(128), the Android 5.1 size; Android 14's is 160
+        # (same layout up to there: RefBase at 0, the native buffer at 8,
+        # its handle at 60). Patch "movs r0, #0x80" to "movs r0, #0xa0".
+        # shims/graphicbuffer.cpp static_asserts the size.
+        vendor/lib/hw/hwcomposer.tegra.so)
+            if [ "$(xxd -p -s 0xc11c -l 2 "${2}")" = "8020" ]; then
+                printf '\xa0' | dd of="${2}" bs=1 seek=$((0xc11c)) conv=notrunc status=none
+            fi
+            [ "$(xxd -p -s 0xc11c -l 2 "${2}")" = "a020" ] || {
+                echo "hwcomposer.tegra.so: unexpected bytes at 0xc11c" >&2
+                return 1
+            }
+            ;;
     esac
 }
 
