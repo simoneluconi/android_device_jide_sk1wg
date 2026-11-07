@@ -433,6 +433,8 @@ DevicePortSource::create(size_t writerBufferSizeHint,
     switch (xsd::stringToAudioDevice(address.deviceType)) {
     case xsd::AudioDevice::AUDIO_DEVICE_IN_DEFAULT:
     case xsd::AudioDevice::AUDIO_DEVICE_IN_BUILTIN_MIC:
+    // sk1wg: the codec has one capture PCM for both microphones
+    case xsd::AudioDevice::AUDIO_DEVICE_IN_WIRED_HEADSET:
         if (GetBoolProperty("ro.boot.audio.tinyalsa.simulate_input", false)) {
             return createGeneratedSource(
                 cfg, writerBufferSizeHint, frames,
@@ -477,6 +479,7 @@ bool DevicePortSource::validateDeviceAddress(const DeviceAddress& address) {
 
     case xsd::AudioDevice::AUDIO_DEVICE_IN_DEFAULT:
     case xsd::AudioDevice::AUDIO_DEVICE_IN_BUILTIN_MIC:
+    case xsd::AudioDevice::AUDIO_DEVICE_IN_WIRED_HEADSET:
     case xsd::AudioDevice::AUDIO_DEVICE_IN_TELEPHONY_RX:
     case xsd::AudioDevice::AUDIO_DEVICE_IN_FM_TUNER:
     case xsd::AudioDevice::AUDIO_DEVICE_IN_BUS:

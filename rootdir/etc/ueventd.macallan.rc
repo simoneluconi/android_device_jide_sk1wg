@@ -2,6 +2,10 @@
 # the device nodes of the stock Remix OS 2.0.305 ueventd.macallan.rc,
 # unchanged. The NVIDIA blobs (libnvrm, libnvos, gralloc, GLES) open
 # nvhost-*, nvmap and tegra_dc from any process, hence the 0666 modes.
+#
+# Ours: the kernel's system-heap ION device, for Codec2's linear buffers
+# (mediaserver and media.swcodec open it read-only through libion).
+/dev/ion        0664    system  system
 /dev/tegra-throughput	0666	system	system
 /dev/knvmap     0660    system  system
 /dev/nvmap      0666    system  system

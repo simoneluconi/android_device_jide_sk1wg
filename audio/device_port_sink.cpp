@@ -376,6 +376,9 @@ DevicePortSink::create(size_t readerBufferSizeHint,
     switch (xsd::stringToAudioDevice(address.deviceType)) {
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_DEFAULT:
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_SPEAKER:
+    // sk1wg: one PCM feeds both the speaker (LOL/LOR) and the jack (HPL/HPR)
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADPHONE:
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADSET:
         {
             auto sinkptr = TinyalsaSink::create(talsa::kPcmCard, talsa::kPcmDevice,
                                                 cfg, readerBufferSizeHint, initialFrames);
@@ -410,6 +413,8 @@ int DevicePortSink::getLatencyMs(const DeviceAddress &address, const AudioConfig
 
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_DEFAULT:
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_SPEAKER:
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADPHONE:
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADSET:
         return TinyalsaSink::getLatencyMs(cfg);
 
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_TELEPHONY_TX:
@@ -426,6 +431,8 @@ bool DevicePortSink::validateDeviceAddress(const DeviceAddress& address) {
 
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_DEFAULT:
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_SPEAKER:
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADPHONE:
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADSET:
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_TELEPHONY_TX:
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_BUS:
         break;
