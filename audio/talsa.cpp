@@ -45,16 +45,6 @@ void mixerSetValueAll(struct mixer_ctl *ctl, int value) {
     }
 }
 
-void mixerSetPercentAll(struct mixer_ctl *ctl, int percent) {
-    if (!ctl) {
-        return;
-    }
-    const unsigned int n = mixer_ctl_get_num_values(ctl);
-    for (unsigned int i = 0; i < n; i++) {
-        ::mixer_ctl_set_percent(ctl, i, percent);
-    }
-}
-
 void mixerSet(struct mixer *mixer, const char *name, int value) {
     struct mixer_ctl *ctl = ::mixer_get_ctl_by_name(mixer, name);
     if (!ctl) {
