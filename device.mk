@@ -79,6 +79,22 @@ PRODUCT_VENDOR_PROPERTIES += \
     dalvik.vm.dex2oat-threads=2 \
     dalvik.vm.boot-dex2oat-threads=4
 
+# Lights: the LCD backlight only (lights/)
+PRODUCT_PACKAGES += \
+    android.hardware.light-service.sk1wg
+
+# Sensors: stock's Invensense HAL (sensors.macallan) through the HIDL 1.0
+# passthrough implementation
+PRODUCT_PACKAGES += \
+    android.hardware.sensors@1.0-impl \
+    android.hardware.sensors@1.0-service
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.accelerometer.xml \
+    frameworks/native/data/etc/android.hardware.sensor.gyroscope.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.gyroscope.xml \
+    frameworks/native/data/etc/android.hardware.sensor.compass.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.compass.xml \
+    frameworks/native/data/etc/android.hardware.sensor.light.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.light.xml
+
 # Health (legacy 2.0 service with the default battery monitor: the CW2015
 # fuel gauge is a standard power_supply)
 PRODUCT_PACKAGES += \

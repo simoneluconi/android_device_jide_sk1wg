@@ -40,6 +40,16 @@ system/vendor/lib/libnvwsi.so:vendor/lib/libnvwsi.so
 system/vendor/lib/libtsec_wrapper.so:vendor/lib/libtsec_wrapper.so
 system/vendor/lib/libtsechdcp.so:vendor/lib/libtsechdcp.so
 
+# Sensors - Invensense MPL (MPU3050 gyro, KXTF9 accel, AK8963 compass) and
+# the CM3217 light sensor, loaded by android.hardware.sensors@1.0-impl. They
+# use only libutils' String8 and SortedVector, unchanged since 5.1.
+system/lib/hw/sensors.macallan.so:vendor/lib/hw/sensors.macallan.so
+system/lib/libinvensense_hal.so:vendor/lib/libinvensense_hal.so
+system/lib/libakm8963.so:vendor/lib/libakm8963.so
+system/lib/libmllite.so:vendor/lib/libmllite.so
+system/lib/libmlplatform.so:vendor/lib/libmlplatform.so
+system/lib/libmplmpu.so:vendor/lib/libmplmpu.so
+
 # Firmware - AVP (video/audio offload) and the host1x engines
 system/etc/firmware/nvavp_aud_ucode.bin:vendor/firmware/nvavp_aud_ucode.bin
 system/etc/firmware/nvavp_os_0ff00000.bin:vendor/firmware/nvavp_os_0ff00000.bin
