@@ -48,6 +48,27 @@ function blob_fixup() {
                 return 1
             }
             ;;
+        # NvGrLock() waits for the buffer's cross-process read/write lock
+        # (LockState at header + 0x44) in a loop that only logs "GetBufferLock
+        # timed out" every 2 s. A writer that dies or is stopped while it
+        # holds the lock (bootanimation at boot end) leaves it held forever,
+        # and SurfaceFlinger hung on it until the Watchdog killed
+        # system_server. On timeout, treat the lock as abandoned: replace the
+        # log call at 0x285e (Thumb, header mutex held) with
+        #   ldr.w r1, [r5, #0x80]   ; header
+        #   movs  r0, #0
+        #   str   r0, [r1, #0x44]   ; LockState = 0
+        #   b     0x283c            ; check again
+        vendor/lib/hw/gralloc.tegra.so)
+            if [ "$(xxd -p -s 0x285e -l 10 "${2}")" = "fff776e8e9680346d5f8" ]; then
+                printf '\xd5\xf8\x80\x10\x00\x20\x48\x64\xe9\xe7' | \
+                    dd of="${2}" bs=1 seek=$((0x285e)) conv=notrunc status=none
+            fi
+            [ "$(xxd -p -s 0x285e -l 10 "${2}")" = "d5f8801000204864e9e7" ] || {
+                echo "gralloc.tegra.so: unexpected bytes at 0x285e" >&2
+                return 1
+            }
+            ;;
     esac
 }
 
