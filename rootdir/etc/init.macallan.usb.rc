@@ -15,6 +15,18 @@ on property:sys.usb.config=mtp
     write /sys/class/android_usb/android0/enable 1
     setprop sys.usb.state ${sys.usb.config}
 
+# Bring-up: on debuggable builds "mtp" keeps adb, so a framework that turns
+# adb off (seen on the first boots, before the display worked) does not cut
+# the only way in. Runs after the action above. sys.usb.state stays "mtp" so
+# UsbDeviceManager sees the state it asked for.
+# TODO: drop with WITH_ADB_INSECURE once the display and setup wizard work.
+on property:sys.usb.config=mtp && property:ro.debuggable=1
+    write /sys/class/android_usb/android0/enable 0
+    write /sys/class/android_usb/android0/idProduct 7100
+    write /sys/class/android_usb/android0/functions mtp,adb
+    write /sys/class/android_usb/android0/enable 1
+    start adbd
+
 on property:sys.usb.config=adb
     write /sys/class/android_usb/android0/enable 0
     write /sys/class/android_usb/android0/idVendor 0955
