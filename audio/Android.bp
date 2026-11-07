@@ -68,10 +68,11 @@ cc_defaults {
         "libfmq",
         "libprocessgroup",
     ],
+    // debug.h is a copy of the emulator's libdebug.ranchu header, which
+    // lives in the device/generic/goldfish namespace
     header_libs: [
         "android.hardware.audio.common.util@all-versions",
         "libaudio_system_headers",
-        "libdebug.ranchu",
     ],
     cflags: [
         "-include common/all-versions/VersionMacro.h",
