@@ -80,6 +80,15 @@
             <instance>default</instance>
         </interface>
     </hal>
-    <!-- USB 1.0 and gatekeeper come from their services' manifest
-         fragments -->
+    <hal format="hidl">
+        <name>android.hardware.bluetooth</name>
+        <transport>hwbinder</transport>
+        <version>1.0</version>
+        <interface>
+            <name>IBluetoothHci</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <!-- USB 1.0, gatekeeper, Wi-Fi, supplicant and hostapd come from their
+         services' manifest fragments -->
 </manifest>
