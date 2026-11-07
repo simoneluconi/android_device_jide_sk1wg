@@ -20,6 +20,9 @@ system/lib/libsecure_hdcp_up.so:vendor/lib/libsecure_hdcp_up.so
 
 # Graphics - NVIDIA runtime (the closure of the libraries above)
 system/vendor/lib/libardrv_dynamic.so:vendor/lib/libardrv_dynamic.so
+# GLSL compiler, dlopen()ed by the GLES driver (not a DT_NEEDED: without
+# it every shader fails to compile with an empty log)
+system/vendor/lib/libcgdrv.so:vendor/lib/libcgdrv.so
 system/vendor/lib/libcplconnectclient.so:vendor/lib/libcplconnectclient.so
 system/vendor/lib/libnvapputil.so:vendor/lib/libnvapputil.so
 system/vendor/lib/libnvcms.so:vendor/lib/libnvcms.so
