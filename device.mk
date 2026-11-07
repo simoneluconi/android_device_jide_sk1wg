@@ -64,6 +64,12 @@ PRODUCT_VENDOR_PROPERTIES += \
     debug.sf.enable_gl_backpressure=1 \
     ro.egl.destroy_after_detach=true
 
+# SurfaceFlinger: the GLES RenderEngine. Skia's cannot import the 5.1 blobs'
+# buffers as textures (primeShaderCache aborts with "Failed to create a
+# valid texture"); html6405's smdk4412-common does the same.
+PRODUCT_VENDOR_PROPERTIES += \
+    debug.renderengine.backend=gles
+
 # ART: 4 cores, but keep dex2oat's memory modest on first boot (apps are
 # compiled on the device, see "Space" below)
 PRODUCT_VENDOR_PROPERTIES += \
