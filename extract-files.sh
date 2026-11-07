@@ -68,6 +68,20 @@ function blob_fixup() {
                 echo "gralloc.tegra.so: unexpected bytes at 0x285e" >&2
                 return 1
             }
+            # NvGrUnregisterBuffer() tears a buffer down when the refcount it
+            # just decremented was <= 1 ("cmp r0, #1; bgt out"), so a second
+            # release of an already torn-down buffer destroys it again:
+            # SurfaceFlinger aborted ("pthread_mutex_destroy called on a
+            # destroyed mutex") when hwcomposer.tegra.so freed its scratch
+            # buffers on a theme change. Tear down only when it was exactly 1:
+            # bgt -> bne at 0x26fe.
+            if [ "$(xxd -p -s 0x26fc -l 4 "${2}")" = "01286bdc" ]; then
+                printf '\xd1' | dd of="${2}" bs=1 seek=$((0x26ff)) conv=notrunc status=none
+            fi
+            [ "$(xxd -p -s 0x26fc -l 4 "${2}")" = "01286bd1" ] || {
+                echo "gralloc.tegra.so: unexpected bytes at 0x26fc" >&2
+                return 1
+            }
             ;;
     esac
 }
