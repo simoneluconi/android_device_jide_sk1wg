@@ -91,13 +91,27 @@ PRODUCT_PACKAGES += \
     android.hardware.keymaster@3.0-service \
     android.hardware.gatekeeper@1.0-service.software
 
-# Audio: stub HAL for the first boot (the TLV320AIC325x HAL comes later)
+# Audio: the TLV320AIC325x (ALSA card 1) through our tinyalsa HIDL 7.1
+# HAL (audio/, from the emulator's), with stock Remix OS's routing.
+# The policy and its volume tables: without them every stream had a
+# volume range of 0..0 and the volume keys did nothing.
 PRODUCT_PACKAGES += \
-    android.hardware.audio@7.0-impl \
+    android.hardware.audio@7.1-impl.sk1wg \
     android.hardware.audio.effect@7.0-impl \
     android.hardware.audio.service \
-    audio.primary.default \
-    audio.r_submix.default
+    audio.bluetooth.default \
+    audio.r_submix.default \
+    tinymix \
+    tinyplay
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/audio/policy/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml \
+    $(LOCAL_PATH)/audio/policy/primary_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/primary_audio_policy_configuration.xml \
+    frameworks/av/services/audiopolicy/config/bluetooth_audio_policy_configuration_7_0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/bluetooth_audio_policy_configuration_7_0.xml \
+    frameworks/av/services/audiopolicy/config/r_submix_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/r_submix_audio_policy_configuration.xml \
+    frameworks/av/services/audiopolicy/config/audio_policy_volumes.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_volumes.xml \
+    frameworks/av/services/audiopolicy/config/default_volume_tables.xml:$(TARGET_COPY_OUT_VENDOR)/etc/default_volume_tables.xml \
+    frameworks/av/media/libeffects/data/audio_effects.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_effects.xml
 
 # USB
 PRODUCT_PACKAGES += \

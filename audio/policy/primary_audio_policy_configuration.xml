@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- sk1wg primary module: the TLV320AIC325x through the tinyalsa HAL in
+     device/jide/sk1wg/audio. Rates as stock's nvaudio_conf.xml ("HW Rates").
+     The HAL keeps speaker and headphone paths both on for now, so the
+     wired devices only select their volume curves. -->
+<module name="primary" halVersion="3.0">
+    <attachedDevices>
+        <item>Speaker</item>
+        <item>Built-In Mic</item>
+    </attachedDevices>
+    <defaultOutputDevice>Speaker</defaultOutputDevice>
+    <mixPorts>
+        <mixPort name="primary output" role="source" flags="AUDIO_OUTPUT_FLAG_PRIMARY">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="44100 48000"
+                     channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+        </mixPort>
+        <mixPort name="primary input" role="sink">
+            <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                     samplingRates="8000 16000 44100 48000"
+                     channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO"/>
+        </mixPort>
+    </mixPorts>
+    <devicePorts>
+        <devicePort tagName="Speaker" type="AUDIO_DEVICE_OUT_SPEAKER" role="sink">
+        </devicePort>
+        <devicePort tagName="Wired Headset" type="AUDIO_DEVICE_OUT_WIRED_HEADSET" role="sink">
+        </devicePort>
+        <devicePort tagName="Wired Headphones" type="AUDIO_DEVICE_OUT_WIRED_HEADPHONE" role="sink">
+        </devicePort>
+
+        <devicePort tagName="Built-In Mic" type="AUDIO_DEVICE_IN_BUILTIN_MIC" role="source">
+        </devicePort>
+        <devicePort tagName="Wired Headset Mic" type="AUDIO_DEVICE_IN_WIRED_HEADSET" role="source">
+        </devicePort>
+    </devicePorts>
+    <routes>
+        <route type="mix" sink="Speaker"
+               sources="primary output"/>
+        <route type="mix" sink="Wired Headset"
+               sources="primary output"/>
+        <route type="mix" sink="Wired Headphones"
+               sources="primary output"/>
+        <route type="mix" sink="primary input"
+               sources="Built-In Mic,Wired Headset Mic"/>
+    </routes>
+</module>

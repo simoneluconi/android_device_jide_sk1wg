@@ -6,15 +6,7 @@
     (in-process) around NVIDIA's gralloc0 and HWC 1.x blobs.
 -->
 <manifest version="1.0" type="device" target-level="5">
-    <hal format="hidl">
-        <name>android.hardware.audio</name>
-        <transport>hwbinder</transport>
-        <version>7.0</version>
-        <interface>
-            <name>IDevicesFactory</name>
-            <instance>default</instance>
-        </interface>
-    </hal>
+    <!-- android.hardware.audio 7.1 comes from audio/'s VINTF fragment -->
     <hal format="hidl">
         <name>android.hardware.audio.effect</name>
         <transport>hwbinder</transport>
