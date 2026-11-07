@@ -18,6 +18,39 @@
 #include "Gralloc0Mapper.h"
 
 #include <log/log.h>
+#include <unistd.h>
+
+namespace {
+
+// sk1wg: NVIDIA's Android 5.1 gralloc.tegra.so keeps the allocating process's
+// pid in its native handle at byte offset 0x14 (data[2], after the fd at
+// 0x0c). NvGrRegisterBuffer() treats a handle whose pid is the caller's as
+// one it allocated itself: it only bumps a refcount and keeps the header page
+// mapping (offset 0x80) copied from the original. NvGrUnregisterBuffer() then
+// also closes and frees such a handle itself.
+//
+// Android 14 allocates in the client (passthrough allocator), imports a
+// clone through this mapper and frees the original, which unmaps the page
+// the clone points at: bootanimation crashed in NvGrLock() on that page + 0x48.
+// Clearing the pid on our clone makes every import a full one (its own mmap
+// and NvRm handle), as for a buffer from another process, and leaves closing
+// and deleting the clone to freeBuffer() as usual.
+constexpr int kNvHandleMinWords = (0xb8 - sizeof(native_handle_t)) / sizeof(int);
+constexpr int kNvOwnerPidIndex = (0x14 - sizeof(native_handle_t)) / sizeof(int);
+
+void nvClearOwnerPid(buffer_handle_t bufferHandle) {
+    native_handle_t* h = const_cast<native_handle_t*>(bufferHandle);
+    if (h->version != sizeof(native_handle_t) || h->numFds < 1 ||
+        h->numFds > kNvOwnerPidIndex ||
+        h->numFds + h->numInts < kNvHandleMinWords) {
+        return;
+    }
+    if (h->data[kNvOwnerPidIndex] == getpid()) {
+        h->data[kNvOwnerPidIndex] = 0;
+    }
+}
+
+}  // namespace
 
 namespace android {
 namespace hardware {
@@ -35,6 +68,8 @@ Gralloc0Mapper::Gralloc0Mapper(const hw_module_t* module)
 }
 
 Error Gralloc0Mapper::registerBuffer(buffer_handle_t bufferHandle) {
+    // bufferHandle is always our own clone (GrallocMapper::importBuffer)
+    nvClearOwnerPid(bufferHandle);
     int result = mModule->registerBuffer(mModule, bufferHandle);
     return result ? Error::BAD_BUFFER : Error::NONE;
 }
