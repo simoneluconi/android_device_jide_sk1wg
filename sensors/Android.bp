@@ -1,0 +1,21 @@
+//
+// SPDX-FileCopyrightText: 2026 The JideRemixTabletRevived Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+package {
+    default_applicable_licenses: ["//device/jide/sk1wg:device_jide_sk1wg_license"],
+}
+
+cc_library_shared {
+    name: "sensors.sk1wg",
+    relative_install_path: "hw",
+    vendor: true,
+    srcs: ["sensors_wrapper.c"],
+    shared_libs: [
+        "libdl",
+        "liblog",
+    ],
+    header_libs: ["libhardware_headers"],
+    cflags: ["-Wall", "-Werror"],
+}

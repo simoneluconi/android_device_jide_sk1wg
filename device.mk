@@ -83,11 +83,16 @@ PRODUCT_VENDOR_PROPERTIES += \
 PRODUCT_PACKAGES += \
     android.hardware.light-service.sk1wg
 
-# Sensors: stock's Invensense HAL (sensors.macallan) through the HIDL 1.0
-# passthrough implementation
+# Sensors: stock's Invensense HAL (sensors.macallan, device API 0.1)
+# behind sensors.sk1wg (sensors/), which presents it as 1.3 to the HIDL
+# 1.0 passthrough implementation
 PRODUCT_PACKAGES += \
     android.hardware.sensors@1.0-impl \
-    android.hardware.sensors@1.0-service
+    android.hardware.sensors@1.0-service \
+    sensors.sk1wg
+
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.hardware.sensors=sk1wg
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.accelerometer.xml \
