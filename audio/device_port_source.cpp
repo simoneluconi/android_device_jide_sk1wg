@@ -59,8 +59,11 @@ struct TinyalsaSource : public DevicePortSource {
             , mFrames(frames)
             , mRingBuffer(mFrameSize * cfg.frameCount * 3)
             , mMixer(pcmCard)
+            , mNChannels(util::countChannels(cfg.base.channelMask))
+            // sk1wg: the codec's capture PCM only delivers data in stereo
+            // (a mono pcm_readi() never returns); see doRead()
             , mPcm(talsa::pcmOpen(pcmCard, pcmDevice,
-                                  util::countChannels(cfg.base.channelMask),
+                                  kPcmChannels,
                                   cfg.base.sampleRateHz,
                                   cfg.frameCount,
                                   false /* isOut */)) {
@@ -184,15 +187,28 @@ struct TinyalsaSource : public DevicePortSource {
         }
     }
 
+    // sk1wg: read stereo from the codec and hand out the left channel, where
+    // the microphones are wired (the right one is silent), as mono or on
+    // both channels.
     size_t doRead(void *dst, size_t sz) {
-        const int n = talsa::pcmRead(mPcm.get(), dst, sz, mFrameSize);
-        if (n > 0) {
-            LOG_ALWAYS_FATAL_IF(static_cast<size_t>(n) > sz,
-                                "n=%d sz=%zu mFrameSize=%u", n, sz, mFrameSize);
-            return n;
-        } else {
+        const size_t nFrames = sz / mFrameSize;
+        mPcmBuf.resize(nFrames * kPcmChannels);
+        const int n = talsa::pcmRead(mPcm.get(), mPcmBuf.data(),
+                                     nFrames * kPcmChannels * sizeof(int16_t),
+                                     kPcmChannels * sizeof(int16_t));
+        if (n <= 0) {
             return 0;
         }
+        const size_t framesRead = n / (kPcmChannels * sizeof(int16_t));
+        LOG_ALWAYS_FATAL_IF(framesRead > nFrames, "n=%d sz=%zu", n, sz);
+
+        int16_t *out = static_cast<int16_t *>(dst);
+        for (size_t i = 0; i < framesRead; ++i) {
+            for (unsigned c = 0; c < mNChannels; ++c) {
+                out[i * mNChannels + c] = mPcmBuf[i * kPcmChannels];
+            }
+        }
+        return framesRead * mFrameSize;
     }
 
     static std::unique_ptr<TinyalsaSource> create(unsigned pcmCard,
@@ -222,6 +238,9 @@ private:
     std::atomic<uint32_t> mFramesLost = 0;
     RingBuffer mRingBuffer;
     talsa::Mixer mMixer;
+    static constexpr unsigned kPcmChannels = 2;
+    const unsigned mNChannels;          // what the client asked for
+    std::vector<int16_t> mPcmBuf;       // stereo frames from the codec
     talsa::PcmPtr mPcm;
     std::thread mProduceThread;
     std::atomic<bool> mProduceThreadRunning = true;

@@ -20,6 +20,11 @@
     <!-- The keyboard dock: hardware keyboard is the normal input -->
     <bool name="config_showNavigationBar">true</bool>
 
+    <!-- The keyboard cover has a magnet: the "sw-key" input device reports
+         SW_LID. Closing the cover puts the tablet to sleep, opening it wakes
+         it up. This sets the initial Settings.Global.LID_BEHAVIOR (SLEEP). -->
+    <bool name="config_lidControlsSleep">true</bool>
+
     <!-- Low-end GPU: no blur, simpler effects -->
     <bool name="config_supportsMultiWindow">true</bool>
 

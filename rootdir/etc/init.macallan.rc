@@ -51,6 +51,10 @@ on post-fs-data && property:ro.debuggable=1
     chown shell shell /data/local/tmp/webview-command-line
     chmod 0644 /data/local/tmp/webview-command-line
 
+# Compile the everyday apps once the system is up (see the script)
+on property:sys.boot_completed=1
+    exec_background - system system -- /vendor/bin/sh /vendor/bin/init.sk1wg.dexopt.sh
+
 on boot
     # eMMC and microSD read-ahead
     write /sys/block/mmcblk0/queue/read_ahead_kb 2048

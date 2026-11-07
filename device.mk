@@ -84,6 +84,23 @@ PRODUCT_VENDOR_PROPERTIES += \
 PRODUCT_PACKAGES += \
     android.hardware.light-service.sk1wg
 
+# Power: LineageOS's libperfmgr HAL with Tegra's PM QoS nodes and clock
+# floors (configs/power/powerhint.json): touch and app-launch boosts.
+# No ADPF (needs uclamp) and no display idle node.
+PRODUCT_SOONG_NAMESPACES += \
+    hardware/google/interfaces \
+    hardware/google/pixel \
+    hardware/lineage/interfaces/power-libperfmgr
+
+PRODUCT_PACKAGES += \
+    android.hardware.power-service.lineage-libperfmgr
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/power/powerhint.json:$(TARGET_COPY_OUT_VENDOR)/etc/powerhint.json
+
+PRODUCT_VENDOR_PROPERTIES += \
+    vendor.powerhal.disp.idle_support=false
+
 # Sensors: stock's Invensense HAL (sensors.macallan, device API 0.1)
 # behind sensors.sk1wg (sensors/), which presents it as 1.3 to the HIDL
 # 1.0 passthrough implementation
@@ -123,6 +140,7 @@ PRODUCT_PACKAGES += \
     android.hardware.audio.service \
     audio.bluetooth.default \
     audio.r_submix.default \
+    tinycap \
     tinymix \
     tinyplay
 
@@ -201,10 +219,15 @@ PRODUCT_COPY_FILES += \
 # Space: the system partition (APP) is only 1000 MB. Apps are compiled on
 # the device instead of at build time (only the boot image and
 # system_server are preoptimised), and a few bundled apps are dropped.
+# init.sk1wg.dexopt.sh compiles the everyday apps with "speed" into /data
+# after the first boot.
 PRODUCT_DEXPREOPT_SPEED_APPS :=
 WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := true
 PRODUCT_PACKAGES += \
     RemovePackages
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/bin/init.sk1wg.dexopt.sh:$(TARGET_COPY_OUT_VENDOR)/bin/init.sk1wg.dexopt.sh
 
 # Storage: no sdcardfs in this kernel
 PRODUCT_PRODUCT_PROPERTIES += \
