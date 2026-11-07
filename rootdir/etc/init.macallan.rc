@@ -43,6 +43,14 @@ on post-fs-data
     mkdir /data/vendor/bluetooth 0770 bluetooth bluetooth
     exec_background - root bluetooth -- /vendor/bin/sh /vendor/bin/init.sk1wg.bdaddr.sh
 
+# WebView: on the native ES 2.0 driver Chromium gets "GrContext creation
+# failed" and then crashes its GPU thread; through ANGLE (ES 3 on top of
+# the driver) it renders. Only debuggable builds read this file.
+on post-fs-data && property:ro.debuggable=1
+    write /data/local/tmp/webview-command-line "_ --use-gl=angle --use-angle=gles"
+    chown shell shell /data/local/tmp/webview-command-line
+    chmod 0644 /data/local/tmp/webview-command-line
+
 on boot
     # eMMC and microSD read-ahead
     write /sys/block/mmcblk0/queue/read_ahead_kb 2048

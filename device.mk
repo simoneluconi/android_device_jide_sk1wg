@@ -51,7 +51,8 @@ PRODUCT_PACKAGES += \
     libshim_atomic \
     libshim_graphicbuffer \
     libcplconnectclient \
-    libnvcpl
+    libnvcpl \
+    libEGL_tegra
 
 # Graphics properties. Tegra 4's GPU is OpenGL ES 2.0 only (stock declares
 # 131072), but the version below is what html6405's Exynos 4 trees declare

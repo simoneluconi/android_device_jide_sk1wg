@@ -32,6 +32,18 @@ cc_library_shared {
     cflags: ["-Wall", "-Werror"],
 }
 
+// In front of NVIDIA's EGL loader, which is installed as libEGL_tegra_nv.so
+// (see egl_tegra.c).
+cc_library_shared {
+    name: "libEGL_tegra",
+    vendor: true,
+    relative_install_path: "egl",
+    srcs: ["egl_tegra.c"],
+    shared_libs: ["liblog"],
+    header_libs: ["gl_headers"],
+    cflags: ["-Wall", "-Werror"],
+}
+
 cc_library_shared {
     name: "libshim_graphicbuffer",
     vendor: true,

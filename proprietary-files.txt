@@ -5,8 +5,10 @@
 
 # Graphics - NVIDIA T114 OpenGL ES (EGL loader tag "tegra"). The EGL and
 # GLES wrappers have /system/lib/ paths built in: extract-files.sh
-# rewrites them to /vendor/lib/ (same length).
-system/lib/egl/libEGL_tegra.so:vendor/lib/egl/libEGL_tegra.so
+# rewrites them to /vendor/lib/ (same length). NVIDIA's EGL loader is
+# installed as libEGL_tegra_nv.so: libEGL_tegra.so is our pass-through in
+# front of it (shims/egl_tegra.c).
+system/lib/egl/libEGL_tegra.so:vendor/lib/egl/libEGL_tegra_nv.so
 system/lib/egl/libEGL_tegra_impl.so:vendor/lib/egl/libEGL_tegra_impl.so
 system/lib/egl/libGLESv1_CM_tegra.so:vendor/lib/egl/libGLESv1_CM_tegra.so
 system/lib/egl/libGLESv1_CM_tegra_impl.so:vendor/lib/egl/libGLESv1_CM_tegra_impl.so
