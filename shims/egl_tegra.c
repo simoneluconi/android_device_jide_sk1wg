@@ -49,13 +49,19 @@ static void *nv_sym(const char *name)
     return nv_egl ? dlsym(nv_egl, name) : NULL;
 }
 
-/* One forwarder per function NVIDIA's loader exports. */
+/*
+ * One forwarder per function NVIDIA's loader exports. If the loader or a
+ * symbol is missing, fail the call (0 is EGL_FALSE / EGL_NO_*) instead of
+ * jumping to address 0; nv_load() has already logged why.
+ */
 #define FWD(ret, name, params, args)                                  \
     ret name params                                                   \
     {                                                                 \
         static ret(*real) params;                                     \
         if (!real)                                                    \
             real = (ret(*) params)nv_sym(#name);                      \
+        if (!real)                                                    \
+            return (ret)0;                                            \
         return real args;                                             \
     }
 
@@ -123,6 +129,8 @@ typedef long long (*nv_any_fn)(void *, void *, void *, void *, void *, void *, v
         static nv_any_fn real;                                             \
         if (!real)                                                         \
             real = (nv_any_fn)nv_sym(#name);                               \
+        if (!real)                                                         \
+            return 0;                                                      \
         return real(a, b, c, d, e, f, g, h);                               \
     }
 
@@ -132,6 +140,7 @@ FWD_ANY(NvEglRegClientApi)
 /* The GL entry points the retry needs, from NVIDIA's GLES loader. */
 static struct {
     void (*GetIntegerv)(GLenum, GLint *);
+    GLboolean (*IsTexture)(GLuint);
     void (*BindTexture)(GLenum, GLuint);
     void (*GetTexParameteriv)(GLenum, GLenum, GLint *);
     void (*TexParameteri)(GLenum, GLenum, GLint);
@@ -147,6 +156,7 @@ static void gl_load(void)
         return;
     }
     gl.GetIntegerv = dlsym(h, "glGetIntegerv");
+    gl.IsTexture = dlsym(h, "glIsTexture");
     gl.BindTexture = dlsym(h, "glBindTexture");
     gl.GetTexParameteriv = dlsym(h, "glGetTexParameteriv");
     gl.TexParameteri = dlsym(h, "glTexParameteri");
@@ -163,16 +173,25 @@ static PFNEGLCREATEIMAGEKHRPROC real_create_image;
 static EGLImageKHR shim_eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target,
                                           EGLClientBuffer buffer, const EGLint *attrs)
 {
-    EGLImageKHR img = real_create_image(dpy, ctx, target, buffer, attrs);
     GLint old_binding = 0, old_min = 0;
     GLuint tex = (GLuint)(uintptr_t)buffer;
+    /*
+     * Ask for the current context before the create: on failure the create
+     * must be the last EGL call, so that eglGetError() reports its error.
+     */
+    const int retry_possible = target == EGL_GL_TEXTURE_2D_KHR && tex &&
+                               ctx == eglGetCurrentContext();
+    EGLImageKHR img = real_create_image(dpy, ctx, target, buffer, attrs);
 
-    if (img != EGL_NO_IMAGE_KHR || target != EGL_GL_TEXTURE_2D_KHR || !tex ||
-        ctx != eglGetCurrentContext())
+    if (img != EGL_NO_IMAGE_KHR || !retry_possible)
         return img;
 
     pthread_once(&gl_once, gl_load);
-    if (!gl.GetIntegerv || !gl.BindTexture || !gl.GetTexParameteriv || !gl.TexParameteri)
+    if (!gl.GetIntegerv || !gl.IsTexture || !gl.BindTexture || !gl.GetTexParameteriv ||
+        !gl.TexParameteri)
+        return img;
+    /* binding a name that is not a texture would create one or raise an error */
+    if (!gl.IsTexture(tex))
         return img;
 
     gl.GetIntegerv(GL_TEXTURE_BINDING_2D, &old_binding);

@@ -23,6 +23,8 @@
 
 #include <inttypes.h>
 
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include <deque>
@@ -92,21 +94,40 @@ RegisteredHandlePool* gRegisteredHandles = new RegisteredHandlePool;
 // A fixed depth of 4 was not enough: a fast fling replaces many composer
 // buffer slots at once and SurfaceFlinger crashed in NvGrLock() (mutex in an
 // unmapped header) from hwcomposer.tegra.so's set(). Keep each freed handle
-// for at least kMinAgeNs (about 60 frames) and always the newest kMinDepth,
-// with kMaxDepth as a memory bound.
+// for kMinAgeNs (about 60 frames), with kMaxDepth as a memory bound.
+//
+// Only in SurfaceFlinger, the process that hosts hwcomposer.tegra.so (the
+// composer HAL is passthrough): every other process frees at once, or each
+// app would keep its last window buffers (8 MB each at 1080p) allocated.
+// Expired handles are released on the next free or import.
 class DeferredFreePool {
    public:
-    static constexpr size_t kMinDepth = 8;
     static constexpr size_t kMaxDepth = 64;
     static constexpr int64_t kMinAgeNs = 1000000000LL;
 
+    static bool enabled() {
+        static const bool sEnabled = !strcmp(getprogname(), "surfaceflinger");
+        return sEnabled;
+    }
+
     // Queues a freed handle; returns the ones that must be released now.
     std::vector<native_handle_t*> push(native_handle_t* bufferHandle) {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mQueue.push_back({bufferHandle, nowNs()});
+        return takeExpiredLocked();
+    }
+
+    // Returns the handles whose time is up.
+    std::vector<native_handle_t*> takeExpired() {
+        std::lock_guard<std::mutex> lock(mMutex);
+        return takeExpiredLocked();
+    }
+
+   private:
+    std::vector<native_handle_t*> takeExpiredLocked() {
         const int64_t now = nowNs();
         std::vector<native_handle_t*> release;
-        std::lock_guard<std::mutex> lock(mMutex);
-        mQueue.push_back({bufferHandle, now});
-        while (mQueue.size() > kMinDepth &&
+        while (!mQueue.empty() &&
                (mQueue.size() > kMaxDepth || now - mQueue.front().freedNs > kMinAgeNs)) {
             release.push_back(mQueue.front().handle);
             mQueue.pop_front();
@@ -114,7 +135,6 @@ class DeferredFreePool {
         return release;
     }
 
-   private:
     struct Entry {
         native_handle_t* handle;
         int64_t freedNs;
@@ -192,6 +212,18 @@ Return<void> GrallocMapper::importBuffer(const hidl_handle& rawHandle,
         return Void();
     }
 
+    // sk1wg: let deferred frees go once their time is up, also when this
+    // process stops freeing (see DeferredFreePool)
+    if (DeferredFreePool::enabled()) {
+        for (native_handle_t* oldHandle : gDeferredFrees->takeExpired()) {
+            unregisterBuffer(oldHandle);
+            if (!mCapabilities.unregisterImplyDelete) {
+                native_handle_close(oldHandle);
+                native_handle_delete(oldHandle);
+            }
+        }
+    }
+
     native_handle_t* bufferHandle =
         native_handle_clone(rawHandle.getNativeHandle());
     if (!bufferHandle) {
@@ -234,8 +266,15 @@ Return<Error> GrallocMapper::freeBuffer(void* buffer) {
         return Error::BAD_BUFFER;
     }
 
-    // sk1wg: release older handles instead (see DeferredFreePool)
-    for (native_handle_t* oldHandle : gDeferredFrees->push(bufferHandle)) {
+    // sk1wg: in SurfaceFlinger, release older handles instead (see
+    // DeferredFreePool)
+    std::vector<native_handle_t*> release;
+    if (DeferredFreePool::enabled()) {
+        release = gDeferredFrees->push(bufferHandle);
+    } else {
+        release.push_back(bufferHandle);
+    }
+    for (native_handle_t* oldHandle : release) {
         unregisterBuffer(oldHandle);
         if (!mCapabilities.unregisterImplyDelete) {
             native_handle_close(oldHandle);

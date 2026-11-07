@@ -383,6 +383,13 @@ DevicePortSink::create(size_t readerBufferSizeHint,
             auto sinkptr = TinyalsaSink::create(talsa::kPcmCard, talsa::kPcmDevice,
                                                 cfg, readerBufferSizeHint, initialFrames);
             if (sinkptr != nullptr) {
+                // sk1wg: the speaker or the jack, not both. AudioPolicy
+                // reopens the output when the route changes (jack in/out).
+                const auto device = xsd::stringToAudioDevice(address.deviceType);
+                const bool jack =
+                        device == xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADPHONE ||
+                        device == xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADSET;
+                talsa::setOutputRoute(!jack, jack);
                 return sinkptr;
             } else {
                 ALOGW("%s:%d failed to create alsa sink for '%s'; creating NullSink instead.",

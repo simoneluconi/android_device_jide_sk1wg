@@ -5,10 +5,10 @@
 # Product configuration for the Jide Remix Ultra Tablet (REMIX SK1WG),
 # NVIDIA Tegra 4 (T114) on the "macallan" reference board.
 #
-# First bring-up set: display (NVIDIA's GLES, gralloc and hwcomposer
-# through the HIDL passthrough adapters), adb, health, keymaster and
-# gatekeeper (software), a stub audio HAL. Wi-Fi, Bluetooth, sensors and
-# real audio come next (docs/TODO.md).
+# Display through NVIDIA's GLES, gralloc and hwcomposer (HIDL passthrough
+# adapters and shims), audio, Wi-Fi, Bluetooth, sensors, lights and power.
+# Status and history: docs/BRINGUP.md. Wi-Fi Direct is not declared: the
+# supplicant runs with p2p_disabled=1.
 #
 
 LOCAL_PATH := device/jide/sk1wg
@@ -174,7 +174,6 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.usb.host.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.usb.host.xml \
     frameworks/native/data/etc/android.software.midi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.midi.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.xml \
-    frameworks/native/data/etc/android.hardware.wifi.direct.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.direct.xml \
     frameworks/native/data/etc/android.hardware.bluetooth.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth.xml \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth_le.xml
 

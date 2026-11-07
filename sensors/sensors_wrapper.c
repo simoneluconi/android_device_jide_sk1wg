@@ -61,20 +61,41 @@ static int wrap_get_sensors_list(struct sensors_module_t *module __unused,
     return g_stock_module->get_sensors_list(g_stock_module, list);
 }
 
+/*
+ * SensorService calls batch() before activate(), and 0.1-era HALs may
+ * ignore setDelay() on a disabled sensor: remember each handle's period
+ * and apply it again once the sensor is on.
+ */
+#define MAX_HANDLES 64
+static int64_t g_period_ns[MAX_HANDLES];
+
 static int wrap_activate(struct sensors_poll_device_t *dev __unused, int handle, int enabled)
 {
-    return g_stock_dev->activate(g_stock_dev, handle, enabled);
+    int ret = g_stock_dev->activate(g_stock_dev, handle, enabled);
+    int64_t period = 0;
+
+    pthread_mutex_lock(&g_lock);
+    if (handle >= 0 && handle < MAX_HANDLES)
+        period = g_period_ns[handle];
+    pthread_mutex_unlock(&g_lock);
+    if (!ret && enabled && period > 0)
+        g_stock_dev->setDelay(g_stock_dev, handle, period);
+    return ret;
 }
 
 static int wrap_set_delay(struct sensors_poll_device_t *dev __unused, int handle, int64_t ns)
 {
+    pthread_mutex_lock(&g_lock);
+    if (handle >= 0 && handle < MAX_HANDLES)
+        g_period_ns[handle] = ns;
+    pthread_mutex_unlock(&g_lock);
     return g_stock_dev->setDelay(g_stock_dev, handle, ns);
 }
 
 static int wrap_batch(struct sensors_poll_device_1 *dev __unused, int handle, int flags __unused,
                       int64_t period_ns, int64_t timeout __unused)
 {
-    return g_stock_dev->setDelay(g_stock_dev, handle, period_ns);
+    return wrap_set_delay(NULL, handle, period_ns);
 }
 
 static int wrap_flush(struct sensors_poll_device_1 *dev __unused, int handle)

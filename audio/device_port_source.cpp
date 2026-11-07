@@ -76,6 +76,9 @@ struct TinyalsaSource : public DevicePortSource {
 
     ~TinyalsaSource() {
         mProduceThreadRunning = false;
+        // sk1wg: the producer may be blocked in pcm_readi() (a stopped I2S
+        // clock never delivers a period): stopping the PCM wakes it
+        talsa::pcmStop(mPcm.get());
         mProduceThread.join();
     }
 
@@ -197,6 +200,13 @@ struct TinyalsaSource : public DevicePortSource {
                                      nFrames * kPcmChannels * sizeof(int16_t),
                                      kPcmChannels * sizeof(int16_t));
         if (n <= 0) {
+            // sk1wg: do not spin on a failing PCM: recover it and wait one
+            // period (read() fills the gap with silence)
+            if (mProduceThreadRunning) {
+                talsa::pcmPrepare(mPcm.get());
+                std::this_thread::sleep_for(std::chrono::microseconds(
+                        uint64_t(mReadSizeFrames) * 1000000 / mSampleRateHz));
+            }
             return 0;
         }
         const size_t framesRead = n / (kPcmChannels * sizeof(int16_t));

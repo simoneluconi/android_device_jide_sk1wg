@@ -47,6 +47,12 @@ PcmPtr pcmOpen(unsigned int dev, unsigned int card, unsigned int nChannels,
 int pcmRead(pcm_t *pcm, void *data, int szBytes, unsigned int frameSize);
 int pcmWrite(pcm_t *pcm, const void *data, int szBytes, unsigned int frameSize);
 
+// sk1wg: turn the speaker amplifier and the headphone jack on or off
+void setOutputRoute(bool speaker, bool headphone);
+// sk1wg: wake a blocked pcm_readi() / recover a capture PCM after an error
+void pcmStop(pcm_t *pcm);
+void pcmPrepare(pcm_t *pcm);
+
 class Mixer {
 public:
     Mixer(unsigned card);

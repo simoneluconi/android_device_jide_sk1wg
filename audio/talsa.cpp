@@ -54,19 +54,17 @@ void mixerSet(struct mixer *mixer, const char *name, int value) {
     mixerSetValueAll(ctl, value);
 }
 
-// sk1wg: the TLV320AIC325x routing of stock Remix OS's nvaudio_conf.xml,
-// all paths on at once (speaker and headphone, built-in mic). Switching
-// between speaker and headphone on jack insertion is not done yet.
+// sk1wg: the TLV320AIC325x routing of stock Remix OS's nvaudio_conf.xml:
+// the DAC to both the line outputs (speaker amplifier) and the headphone
+// drivers, built-in mic. The codec driver sets its volumes itself. Which of
+// the speaker and the jack is on is chosen per output device by
+// setOutputRoute() (the "Int Spk" and "Headphone Jack" DAPM pins).
 void sk1wgSetupRouting(struct mixer *mixer) {
-    mixerSet(mixer, "Speaker Playback Volume", 0x22);
-
     mixerSet(mixer, "LOL Output Mixer L_DAC switch", 1);
     mixerSet(mixer, "LOR Output Mixer R_DAC switch", 1);
-    mixerSet(mixer, "Int Spk Switch", 1);
 
     mixerSet(mixer, "HPL Output Mixer L_DAC switch", 1);
     mixerSet(mixer, "HPR Output Mixer R_DAC switch", 1);
-    mixerSet(mixer, "Headphone Jack Switch", 1);
 
     mixerSet(mixer, "Mic_Bias_Power_ctrl", 1);
     mixerSet(mixer, "Int Mic Switch", 1);
@@ -279,6 +277,28 @@ int pcmWrite(pcm_t *pcm, const void *data, const int szBytes,
                 return FAILURE(-1);
             }
         }
+    }
+}
+
+void setOutputRoute(const bool speaker, const bool headphone) {
+    struct mixer *mixer = mixerGetOrOpen(kPcmCard);
+    if (!mixer) {
+        return;
+    }
+    mixerSet(mixer, "Int Spk Switch", speaker ? 1 : 0);
+    mixerSet(mixer, "Headphone Jack Switch", headphone ? 1 : 0);
+    LOG_ALWAYS_FATAL_IF(!mixerUnref(mixer));
+}
+
+void pcmStop(pcm_t *pcm) {
+    if (pcm) {
+        ::pcm_stop(pcm);
+    }
+}
+
+void pcmPrepare(pcm_t *pcm) {
+    if (pcm) {
+        ::pcm_prepare(pcm);
     }
 }
 

@@ -9,15 +9,18 @@
         <item>Built-In Mic</item>
     </attachedDevices>
     <defaultOutputDevice>Speaker</defaultOutputDevice>
+    <!-- Playback and capture share one I2S link (one LRCK), so both run at
+         48 kHz only and AudioFlinger resamples: a capture at another rate
+         would fail to open or re-clock the playback. -->
     <mixPorts>
         <mixPort name="primary output" role="source" flags="AUDIO_OUTPUT_FLAG_PRIMARY">
             <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
-                     samplingRates="44100 48000"
+                     samplingRates="48000"
                      channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
         </mixPort>
         <mixPort name="primary input" role="sink">
             <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
-                     samplingRates="8000 16000 44100 48000"
+                     samplingRates="48000"
                      channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO"/>
         </mixPort>
     </mixPorts>
