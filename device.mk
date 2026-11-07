@@ -49,7 +49,9 @@ PRODUCT_PACKAGES += \
     android.hardware.graphics.mapper@2.0-impl-sk1wg \
     android.hardware.graphics.composer@2.1-impl \
     libshim_atomic \
-    libshim_graphicbuffer
+    libshim_graphicbuffer \
+    libcplconnectclient \
+    libnvcpl
 
 # Graphics properties. Tegra 4's GPU is OpenGL ES 2.0 only (stock declares
 # 131072), but the version below is what html6405's Exynos 4 trees declare

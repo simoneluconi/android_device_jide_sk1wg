@@ -16,6 +16,22 @@ cc_library_shared {
     cflags: ["-Wall", "-Werror"],
 }
 
+// Binder-free stand-ins for NVIDIA's Control Panel client libraries
+// (see nvcpl_stub.c); same names, so the blobs' DT_NEEDED find them.
+cc_library_shared {
+    name: "libnvcpl",
+    vendor: true,
+    srcs: ["nvcpl_stub.c"],
+    cflags: ["-Wall", "-Werror", "-DNVCPL_FULL"],
+}
+
+cc_library_shared {
+    name: "libcplconnectclient",
+    vendor: true,
+    srcs: ["nvcpl_stub.c"],
+    cflags: ["-Wall", "-Werror"],
+}
+
 cc_library_shared {
     name: "libshim_graphicbuffer",
     vendor: true,

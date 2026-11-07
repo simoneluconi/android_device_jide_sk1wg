@@ -23,10 +23,11 @@ system/vendor/lib/libardrv_dynamic.so:vendor/lib/libardrv_dynamic.so
 # GLSL compiler, dlopen()ed by the GLES driver (not a DT_NEEDED: without
 # it every shader fails to compile with an empty log)
 system/vendor/lib/libcgdrv.so:vendor/lib/libcgdrv.so
-system/vendor/lib/libcplconnectclient.so:vendor/lib/libcplconnectclient.so
 system/vendor/lib/libnvapputil.so:vendor/lib/libnvapputil.so
 system/vendor/lib/libnvcms.so:vendor/lib/libnvcms.so
-system/vendor/lib/libnvcpl.so:vendor/lib/libnvcpl.so
+# libnvcpl.so and libcplconnectclient.so are not extracted: they use the
+# 5.1 C++ binder API with a stack Parcel and corrupt their callers on
+# Android 14. shims/nvcpl_stub.c builds binder-free replacements.
 system/vendor/lib/libnvddk_2d.so:vendor/lib/libnvddk_2d.so
 system/vendor/lib/libnvddk_2d_v2.so:vendor/lib/libnvddk_2d_v2.so
 system/vendor/lib/libnvglsi.so:vendor/lib/libnvglsi.so
