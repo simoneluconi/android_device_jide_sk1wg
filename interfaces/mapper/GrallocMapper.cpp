@@ -23,8 +23,11 @@
 
 #include <inttypes.h>
 
+#include <time.h>
+
 #include <deque>
 #include <mutex>
+#include <vector>
 
 #include <log/log.h>
 #include <sync/sync.h>
@@ -83,27 +86,48 @@ RegisteredHandlePool* gRegisteredHandles = new RegisteredHandlePool;
 // it. NvGrUnregisterBuffer() unmaps the buffer's header page, and
 // hwcomposer.tegra.so then faulted on it (header + 0x70) from
 // HWC2On1Adapter::Display::present(). On Android 5.1, SurfaceFlinger held
-// buffers until their release fences. Keep the last few freed handles
-// registered before really releasing them.
+// buffers until their release fences. Keep freed handles registered for a
+// while before really releasing them.
+//
+// A fixed depth of 4 was not enough: a fast fling replaces many composer
+// buffer slots at once and SurfaceFlinger crashed in NvGrLock() (mutex in an
+// unmapped header) from hwcomposer.tegra.so's set(). Keep each freed handle
+// for at least kMinAgeNs (about 60 frames) and always the newest kMinDepth,
+// with kMaxDepth as a memory bound.
 class DeferredFreePool {
    public:
-    static constexpr size_t kDepth = 4;
+    static constexpr size_t kMinDepth = 8;
+    static constexpr size_t kMaxDepth = 64;
+    static constexpr int64_t kMinAgeNs = 1000000000LL;
 
-    // Queues a freed handle; returns the one that must be released now.
-    native_handle_t* push(native_handle_t* bufferHandle) {
+    // Queues a freed handle; returns the ones that must be released now.
+    std::vector<native_handle_t*> push(native_handle_t* bufferHandle) {
+        const int64_t now = nowNs();
+        std::vector<native_handle_t*> release;
         std::lock_guard<std::mutex> lock(mMutex);
-        mQueue.push_back(bufferHandle);
-        if (mQueue.size() <= kDepth) {
-            return nullptr;
+        mQueue.push_back({bufferHandle, now});
+        while (mQueue.size() > kMinDepth &&
+               (mQueue.size() > kMaxDepth || now - mQueue.front().freedNs > kMinAgeNs)) {
+            release.push_back(mQueue.front().handle);
+            mQueue.pop_front();
         }
-        native_handle_t* oldest = mQueue.front();
-        mQueue.pop_front();
-        return oldest;
+        return release;
     }
 
    private:
+    struct Entry {
+        native_handle_t* handle;
+        int64_t freedNs;
+    };
+
+    static int64_t nowNs() {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        return ts.tv_sec * 1000000000LL + ts.tv_nsec;
+    }
+
     std::mutex mMutex;
-    std::deque<native_handle_t*> mQueue;
+    std::deque<Entry> mQueue;
 };
 
 // Leaked on purpose, like gRegisteredHandles
@@ -210,16 +234,13 @@ Return<Error> GrallocMapper::freeBuffer(void* buffer) {
         return Error::BAD_BUFFER;
     }
 
-    // sk1wg: release an older handle instead (see DeferredFreePool)
-    bufferHandle = gDeferredFrees->push(bufferHandle);
-    if (!bufferHandle) {
-        return Error::NONE;
-    }
-
-    unregisterBuffer(bufferHandle);
-    if (!mCapabilities.unregisterImplyDelete) {
-        native_handle_close(bufferHandle);
-        native_handle_delete(bufferHandle);
+    // sk1wg: release older handles instead (see DeferredFreePool)
+    for (native_handle_t* oldHandle : gDeferredFrees->push(bufferHandle)) {
+        unregisterBuffer(oldHandle);
+        if (!mCapabilities.unregisterImplyDelete) {
+            native_handle_close(oldHandle);
+            native_handle_delete(oldHandle);
+        }
     }
 
     return Error::NONE;
