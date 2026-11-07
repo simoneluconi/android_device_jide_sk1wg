@@ -110,9 +110,16 @@ on boot
     chmod 0660 /dev/ttyHS2
     chown bluetooth bluetooth /dev/ttyHS2
 
-    # Wi-Fi: bcmdhd's firmware path parameter is written by the Wi-Fi HAL
-    chown wifi wifi /sys/module/bcmdhd/parameters/firmware_path
-    chmod 0660 /sys/module/bcmdhd/parameters/firmware_path
+    # Wi-Fi: the Wi-Fi HAL writes the driver's firmware path parameter
+    # (bcmdhd is built in as module "bcm43341")
+    chown wifi wifi /sys/module/bcm43341/parameters/firmware_path
+    chmod 0660 /sys/module/bcm43341/parameters/firmware_path
+
+# No shell on the debug UART: the kernel has no serial console any more
+# (lineageos_sk1wg_defconfig), and init.rc starts one on debuggable builds,
+# which also shows the "Serial console enabled" notification
+on init && property:ro.debuggable=1
+    stop console
 
 on property:sys.boot_completed=1
     # The interactive governor's boost floor once boot is done

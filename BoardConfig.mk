@@ -41,7 +41,9 @@ TARGET_HAS_MEMFD_BACKPORT := true
 BOARD_KERNEL_BASE := 0x10000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_IMAGE_NAME := zImage
-BOARD_KERNEL_CMDLINE := androidboot.hardware=macallan androidboot.selinux=permissive
+# loglevel=4: the bootloader adds console=ttyS0,115200n8, and every kernel
+# message at a lower level would be written synchronously to that UART
+BOARD_KERNEL_CMDLINE := androidboot.hardware=macallan androidboot.selinux=permissive loglevel=4
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x01000000 --tags_offset 0x00000100 --second_offset 0x00f00000
 TARGET_KERNEL_SOURCE := kernel/jide/sk1wg
 TARGET_KERNEL_CONFIG := lineageos_sk1wg_defconfig
@@ -82,6 +84,27 @@ BOARD_PROPERTY_OVERRIDES_SPLIT_ENABLED := true
 TARGET_NO_RECOVERY := true
 BOARD_ROOT_EXTRA_FOLDERS :=
 BOARD_ROOT_EXTRA_SYMLINKS :=
+
+# Wi-Fi: Broadcom BCM43341 (USI WM-BAN-BM-13) on SDIO, bcmdhd built into
+# the kernel as module "bcm43341". Firmware and NVRAM are extracted to
+# /vendor (the kernel config has the same default paths).
+BOARD_WLAN_DEVICE := bcmdhd
+WPA_SUPPLICANT_VERSION := VER_0_8_X
+BOARD_WPA_SUPPLICANT_DRIVER := NL80211
+BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_bcmdhd
+BOARD_HOSTAPD_DRIVER := NL80211
+BOARD_HOSTAPD_PRIVATE_LIB := lib_driver_cmd_bcmdhd
+WIFI_DRIVER_FW_PATH_PARAM := "/sys/module/bcm43341/parameters/firmware_path"
+WIFI_DRIVER_FW_PATH_STA := "/vendor/firmware/bcm43341/fw_bcmdhd.bin"
+WIFI_DRIVER_FW_PATH_AP := "/vendor/firmware/bcm43341/fw_bcmdhd_apsta.bin"
+WIFI_DRIVER_FW_PATH_P2P := "/vendor/firmware/bcm43341/fw_bcmdhd_p2p.bin"
+WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
+
+# Bluetooth: the BCM43341's BT core on /dev/ttyHS2, powered through the
+# "bluedroid_pm" rfkill; AOSP's Broadcom vendor library, as stock
+BOARD_HAVE_BLUETOOTH := true
+BOARD_HAVE_BLUETOOTH_BCM := true
+BOARD_CUSTOM_BT_CONFIG := $(DEVICE_PATH)/configs/bluetooth/vnd_sk1wg.txt
 
 # Graphics: NVIDIA's T114 gralloc0 and HWC 1.x
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
