@@ -42,8 +42,10 @@ BOARD_KERNEL_BASE := 0x10000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_IMAGE_NAME := zImage
 # loglevel=4: the bootloader adds console=ttyS0,115200n8, and every kernel
-# message at a lower level would be written synchronously to that UART
-BOARD_KERNEL_CMDLINE := androidboot.hardware=macallan androidboot.selinux=permissive loglevel=4
+# message at a lower level would be written synchronously to that UART.
+# oops=panic (bring-up): an Oops panics, and the kernel's
+# TEGRA_PANIC_TO_BOOTLOADER then restarts into fastboot with last_kmsg kept.
+BOARD_KERNEL_CMDLINE := androidboot.hardware=macallan androidboot.selinux=permissive loglevel=4 oops=panic
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x01000000 --tags_offset 0x00000100 --second_offset 0x00f00000
 TARGET_KERNEL_SOURCE := kernel/jide/sk1wg
 TARGET_KERNEL_CONFIG := lineageos_sk1wg_defconfig
