@@ -2,13 +2,13 @@
 # eMMC untouched (Remix OS stays as it is). Built with SK1WG_SDCARD_ROOT=true,
 # booted only with "fastboot boot" (see docs/BRINGUP.md).
 # The card is prepared from the mini recovery (writes to mmcblk1 only):
-#   p1  system  >= 1000 MB   (system.img)
-#   p2  vendor  >=  800 MB   (vendor.img)
-#   p3  data    rest, ext4
+#   p1  system      >= 1000 MB   (system.img, vendor included)
+#   p2  system_ext  >=  800 MB   (system_ext.img)
+#   p3  data        rest, ext4
 #
 # <src>                       <mnt_point>  <type>  <mnt_flags and options>                            <fs_mgr_flags>
 /dev/block/mmcblk1p1          /system      ext4    ro,noatime                                         wait,first_stage_mount
-/dev/block/mmcblk1p2          /vendor      ext4    ro,noatime,nodev                                   wait,first_stage_mount
+/dev/block/mmcblk1p2          /system_ext  ext4    ro,noatime                                         wait,first_stage_mount
 /dev/block/mmcblk1p3          /data        ext4    noatime,nosuid,nodev,noauto_da_alloc,errors=panic  wait,check
 
 /devices/platform/tegra-ehci.0*  auto      auto    defaults                                           voldmanaged=usb:auto

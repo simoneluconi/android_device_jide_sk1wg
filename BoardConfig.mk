@@ -57,18 +57,21 @@ TARGET_KERNEL_ADDITIONAL_FLAGS := \
     KBUILD_BUILD_HOST=jideremixtabletrevived
 
 # Partitions (stock GPT, sizes from "fastboot getvar all"):
-#   LNX  boot      8 MB
-#   APP  system 1000 MB
-#   CAC  vendor  768 MB (stock /cache, unused by LineageOS here)
-#   UDA  data   ~56 GB
-# SOS (recovery) keeps the stock Remix OS recovery; there is no room for
-# the LineageOS one.
+#   LNX  boot          8 MB
+#   APP  system     1000 MB (with /system/vendor: the vendor files are ~35 MB)
+#   CAC  system_ext  768 MB (stock /cache, unused by LineageOS here)
+#   UDA  data       ~56 GB
+# system with system_ext does not fit in APP (1210 MB), so system_ext gets
+# the 768 MB CAC and vendor, too small to need a partition, lives in
+# system. SOS (recovery) keeps the stock Remix OS recovery; there is no
+# room for the LineageOS one.
 BOARD_BOOTIMAGE_PARTITION_SIZE := 8388608
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 1048576000
-BOARD_VENDORIMAGE_PARTITION_SIZE := 805306368
-BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
-BOARD_USES_VENDORIMAGE := true
-TARGET_COPY_OUT_VENDOR := vendor
+BOARD_SYSTEM_EXTIMAGE_PARTITION_SIZE := 805306368
+BOARD_SYSTEM_EXTIMAGE_FILE_SYSTEM_TYPE := ext4
+BOARD_USES_SYSTEM_EXTIMAGE := true
+TARGET_COPY_OUT_SYSTEM_EXT := system_ext
+TARGET_COPY_OUT_VENDOR := system/vendor
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 60578332672
 BOARD_FLASH_BLOCK_SIZE := 4096
 TARGET_USERIMAGES_USE_EXT4 := true
@@ -81,8 +84,13 @@ BOARD_ROOT_EXTRA_SYMLINKS :=
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 TARGET_USES_HWC2 := true
 
-# Shims for the Android 5.1 graphics blobs (see shims/)
+# Shims for the Android 5.1 graphics blobs (see shims/). The linker
+# matches the library's realpath, which is under /system/vendor (/vendor is
+# a symlink); the /vendor entries are kept in case it does not resolve.
 TARGET_LD_SHIM_LIBS := \
+    /system/vendor/lib/hw/gralloc.tegra.so|/vendor/lib/libshim_atomic.so \
+    /system/vendor/lib/hw/hwcomposer.tegra.so|/vendor/lib/libshim_atomic.so \
+    /system/vendor/lib/hw/hwcomposer.tegra.so|/vendor/lib/libshim_graphicbuffer.so \
     /vendor/lib/hw/gralloc.tegra.so|/vendor/lib/libshim_atomic.so \
     /vendor/lib/hw/hwcomposer.tegra.so|/vendor/lib/libshim_atomic.so \
     /vendor/lib/hw/hwcomposer.tegra.so|/vendor/lib/libshim_graphicbuffer.so
