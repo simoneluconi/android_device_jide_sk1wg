@@ -98,8 +98,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/power/powerhint.json:$(TARGET_COPY_OUT_VENDOR)/etc/powerhint.json
 
+# The touch boost lasts 2.5 s after the last input event (default 1.4 s),
+# so it covers a fling until the list stops.
 PRODUCT_VENDOR_PROPERTIES += \
-    vendor.powerhal.disp.idle_support=false
+    vendor.powerhal.disp.idle_support=false \
+    vendor.powerhal.interaction.min=2500
 
 # Sensors: stock's Invensense HAL (sensors.macallan, device API 0.1)
 # behind sensors.sk1wg (sensors/), which presents it as 1.3 to the HIDL

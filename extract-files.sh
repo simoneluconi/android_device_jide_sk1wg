@@ -68,6 +68,22 @@ function blob_fixup() {
                 echo "gralloc.tegra.so: unexpected bytes at 0x285e" >&2
                 return 1
             }
+            # The same wait, pthread_cond_timedwait_relative_np(2 s): NVIDIA's
+            # HWC keeps the layer buffers of the last frame locked until its
+            # next set() (or its idle timer), even the ones SurfaceFlinger
+            # composed on the GPU, while SurfaceFlinger waits for the app's
+            # next frame: the app's RenderThread stalled about a second in
+            # NvGrLock() during fast scrolls. Do not wait: timeout 0, then the
+            # patch above takes the lock. GPU access is still ordered by the
+            # driver's syncpoint fences. "movs r0, #2" -> "movs r0, #0" at
+            # 0x2846.
+            if [ "$(xxd -p -s 0x2846 -l 2 "${2}")" = "0220" ]; then
+                printf '\x00' | dd of="${2}" bs=1 seek=$((0x2846)) conv=notrunc status=none
+            fi
+            [ "$(xxd -p -s 0x2846 -l 2 "${2}")" = "0020" ] || {
+                echo "gralloc.tegra.so: unexpected bytes at 0x2846" >&2
+                return 1
+            }
             # NvGrUnregisterBuffer() tears a buffer down when the refcount it
             # just decremented was <= 1 ("cmp r0, #1; bgt out"), so a second
             # release of an already torn-down buffer destroys it again:

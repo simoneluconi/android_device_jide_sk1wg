@@ -9,8 +9,37 @@
     <bool name="config_sms_capable">false</bool>
     <bool name="config_mobile_data_capable">false</bool>
 
-    <!-- No light sensor HAL yet (CM3217 comes later) -->
-    <bool name="config_automatic_brightness_available">false</bool>
+    <!-- Adaptive brightness from the CM3217 light sensor. The sensors HAL
+         reports its raw ADC count as lux (about 0.3 lux per step), so these
+         are stock Remix OS's tables for that scale. -->
+    <bool name="config_automatic_brightness_available">true</bool>
+    <integer-array name="config_autoBrightnessLevels">
+        <item>30</item>
+        <item>60</item>
+        <item>90</item>
+        <item>150</item>
+        <item>200</item>
+        <item>320</item>
+        <item>600</item>
+        <item>1200</item>
+        <item>1800</item>
+        <item>2400</item>
+        <item>5000</item>
+    </integer-array>
+    <integer-array name="config_autoBrightnessLcdBacklightValues">
+        <item>13</item>
+        <item>36</item>
+        <item>59</item>
+        <item>82</item>
+        <item>105</item>
+        <item>128</item>
+        <item>151</item>
+        <item>174</item>
+        <item>197</item>
+        <item>220</item>
+        <item>242</item>
+        <item>255</item>
+    </integer-array>
 
     <!-- pwm-backlight: 0..255 -->
     <integer name="config_screenBrightnessSettingMinimum">10</integer>

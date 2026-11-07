@@ -50,6 +50,9 @@
 /dev/radio      0666    system  radio
 /dev/mpu        0640    system  system
 /dev/mpuirq     0640    system  system
+# Ours: the CM3217 light sensor; sensors.macallan.so enables it with
+# LIGHTSENSOR_IOCTL_ENABLE (stock's list did not have it)
+/dev/lightsensor 0660   system  system
 /dev/accelirq   0640    system  system
 /dev/timerirq   0640    system  system
 /dev/raydium_ts 0770    system  system
