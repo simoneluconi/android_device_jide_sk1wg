@@ -23,6 +23,9 @@
 
 #include <inttypes.h>
 
+#include <deque>
+#include <mutex>
+
 #include <log/log.h>
 #include <sync/sync.h>
 
@@ -73,6 +76,38 @@ class RegisteredHandlePool {
 // of static/global object in gralloc0/gralloc1 that may have been destructed
 // is potentially broken.
 RegisteredHandlePool* gRegisteredHandles = new RegisteredHandlePool;
+
+// sk1wg: NVIDIA's HWC 1.x keeps using the previous frame's buffers during
+// set() (the panel still scans the old one out until the flip), but the
+// composer HAL frees its imported copy as soon as SurfaceFlinger replaces
+// it. NvGrUnregisterBuffer() unmaps the buffer's header page, and
+// hwcomposer.tegra.so then faulted on it (header + 0x70) from
+// HWC2On1Adapter::Display::present(). On Android 5.1, SurfaceFlinger held
+// buffers until their release fences. Keep the last few freed handles
+// registered before really releasing them.
+class DeferredFreePool {
+   public:
+    static constexpr size_t kDepth = 4;
+
+    // Queues a freed handle; returns the one that must be released now.
+    native_handle_t* push(native_handle_t* bufferHandle) {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mQueue.push_back(bufferHandle);
+        if (mQueue.size() <= kDepth) {
+            return nullptr;
+        }
+        native_handle_t* oldest = mQueue.front();
+        mQueue.pop_front();
+        return oldest;
+    }
+
+   private:
+    std::mutex mMutex;
+    std::deque<native_handle_t*> mQueue;
+};
+
+// Leaked on purpose, like gRegisteredHandles
+DeferredFreePool* gDeferredFrees = new DeferredFreePool;
 
 }  // anonymous namespace
 
@@ -173,6 +208,12 @@ Return<Error> GrallocMapper::freeBuffer(void* buffer) {
     native_handle_t* bufferHandle = gRegisteredHandles->pop(buffer);
     if (!bufferHandle) {
         return Error::BAD_BUFFER;
+    }
+
+    // sk1wg: release an older handle instead (see DeferredFreePool)
+    bufferHandle = gDeferredFrees->push(bufferHandle);
+    if (!bufferHandle) {
+        return Error::NONE;
     }
 
     unregisterBuffer(bufferHandle);
