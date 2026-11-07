@@ -1,0 +1,2 @@
+# The vendor partition (CAC); not a platform type
+type vendor_block_device, dev_type;
