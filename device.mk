@@ -95,6 +95,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.usb@1.0-service.basic
 
+# adbd: the 3.4 f_fs has no AIO (io_submit on FunctionFS came in 3.15), so
+# use adbd's legacy blocking USB code (as html6405's smdk4412-common). Without
+# it the host sees the device but it stays "offline".
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.adb.nonblocking_ffs=false
+
 # Permissions
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/tablet_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/tablet_core_hardware.xml \

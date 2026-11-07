@@ -17,6 +17,11 @@ on init
     mkdir /dev/usb-ffs 0770 shell shell
     mkdir /dev/usb-ffs/adb 0770 shell shell
     mount functionfs adb /dev/usb-ffs/adb uid=2000,gid=2000
+
+    # This f_fs has no AIO (it came in 3.15): adbd's legacy USB code with
+    # plain read()/write() (see ro.adb.nonblocking_ffs in device.mk)
+    setprop sys.usb.ffs.aio_compat 1
+    setprop persist.adb.nonblocking_ffs 0
     write /sys/class/android_usb/android0/f_ffs/aliases adb
 
     # The android_usb gadget's serial number and strings
