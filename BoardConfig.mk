@@ -95,6 +95,10 @@ DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += $(DEVICE_PATH)/framework_compatibi
 # SELinux: permissive for the bring-up (see BOARD_KERNEL_CMDLINE), with a
 # minimal vendor policy for the NVIDIA device nodes
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
+# The Treble compat tests (prebuilts/api/30.0-34.0, built as "user") trip
+# over the LineageOS su domain's rules; html6405's smdk4412-common, which
+# the Galaxy Camera builds with, sets the same
+SELINUX_IGNORE_NEVERALLOWS := true
 
 # Inherit the proprietary files
 include vendor/jide/sk1wg/BoardConfigVendor.mk
