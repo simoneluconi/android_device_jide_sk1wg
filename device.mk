@@ -121,11 +121,12 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.bluetooth.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth.xml \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth_le.xml
 
-# Wi-Fi: AIDL Wi-Fi HAL over the legacy Broadcom HAL (libwifi-hal-bcm,
-# BOARD_WLAN_DEVICE), wpa_supplicant/hostapd with the bcmdhd driver lib.
-# The overlays carry stock Remix OS's settings for this chip.
+# Wi-Fi: LineageOS's legacy HIDL Wi-Fi HAL over the Broadcom legacy HAL
+# (libwifi-hal-bcm, BOARD_WLAN_DEVICE; the AIDL one needs a newer
+# wifi_hal.h), as html6405's smdk4412-common; wpa_supplicant/hostapd with
+# the bcmdhd driver lib. The overlays carry stock Remix OS's settings.
 PRODUCT_PACKAGES += \
-    android.hardware.wifi-service \
+    android.hardware.wifi@1.0-service-lazy.legacy \
     hostapd \
     libwpa_client \
     wificond \
