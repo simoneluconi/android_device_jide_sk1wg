@@ -40,6 +40,8 @@ on post-fs-data
     mkdir /data/vendor/wifi/wpa 0770 wifi wifi
     mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
     mkdir /data/vendor/mpu 0770 system system
+    mkdir /data/vendor/bluetooth 0770 bluetooth bluetooth
+    exec_background - root bluetooth -- /vendor/bin/sh /vendor/bin/init.sk1wg.bdaddr.sh
 
 on boot
     # eMMC and microSD read-ahead

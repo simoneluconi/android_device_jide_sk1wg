@@ -121,12 +121,13 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.bluetooth.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth.xml \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.bluetooth_le.xml
 
-# Wi-Fi: LineageOS's legacy HIDL Wi-Fi HAL over the Broadcom legacy HAL
-# (libwifi-hal-bcm, BOARD_WLAN_DEVICE; the AIDL one needs a newer
-# wifi_hal.h), as html6405's smdk4412-common; wpa_supplicant/hostapd with
-# the bcmdhd driver lib. The overlays carry stock Remix OS's settings.
+# Wi-Fi: no vendor Wi-Fi HAL. This bcmdhd (2016) has no nl80211 vendor
+# commands (no wl_cfgvendor.c), so libwifi-hal-bcm fails "set hal start"
+# and the HAL crashes; without a HAL the framework drives wlan0 through
+# wificond and wpa_supplicant (optional since Android 11).
+# wpa_supplicant/hostapd use the bcmdhd driver lib; the overlays carry
+# stock Remix OS's settings.
 PRODUCT_PACKAGES += \
-    android.hardware.wifi@1.0-service-lazy.legacy \
     hostapd \
     libwpa_client \
     wificond \
@@ -146,6 +147,15 @@ PRODUCT_PACKAGES += \
     android.hardware.bluetooth@1.0-impl \
     android.hardware.bluetooth@1.0-service \
     libbt-vendor
+
+# The BT address: the chip has none programmed and stock kept one in
+# /data. init.sk1wg.bdaddr.sh makes a random locally administered one
+# on the first boot and keeps it.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/bin/init.sk1wg.bdaddr.sh:$(TARGET_COPY_OUT_VENDOR)/bin/init.sk1wg.bdaddr.sh
+
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.bt.bdaddr_path=/data/vendor/bluetooth/bdaddr
 
 # Touchscreen and keyboard dock
 PRODUCT_COPY_FILES += \
