@@ -44,6 +44,23 @@ cc_library_shared {
     cflags: ["-Wall", "-Werror"],
 }
 
+// In front of NVIDIA's GLES 2 library, which is installed as
+// libGLESv2_tegra_nv.so: glCopyTexSubImage2D on the GPU and
+// GL_OES_packed_depth_stencil (see gles2_tegra_copy.c, gles2_tegra_ds.c).
+cc_library_shared {
+    name: "libGLESv2_tegra",
+    vendor: true,
+    relative_install_path: "egl",
+    srcs: [
+        "gles2_tegra_fwd.c",
+        "gles2_tegra_copy.c",
+        "gles2_tegra_ds.c",
+    ],
+    shared_libs: ["libdl", "liblog"],
+    header_libs: ["gl_headers"],
+    cflags: ["-Wall", "-Werror"],
+}
+
 cc_library_shared {
     name: "libshim_graphicbuffer",
     vendor: true,

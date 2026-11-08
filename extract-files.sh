@@ -31,7 +31,7 @@ function blob_fixup() {
         # The EGL/GLES wrappers dlopen their implementation and libEGL from
         # /system/lib; on LineageOS they live in /vendor/lib (same length)
         vendor/lib/egl/libEGL_tegra_nv.so | vendor/lib/egl/libEGL_tegra_impl.so | \
-        vendor/lib/egl/libGLESv1_CM_tegra.so | vendor/lib/egl/libGLESv2_tegra.so)
+        vendor/lib/egl/libGLESv1_CM_tegra.so | vendor/lib/egl/libGLESv2_tegra_nv.so)
             LC_ALL=C sed -i "s|/system/lib/|/vendor/lib/|g" "${2}"
             ;;
         # create_graphic_buffer() allocates the GraphicBuffer itself with

@@ -15,6 +15,9 @@
  *
  * On such a failure, for a texture of the current context, retry with a
  * non-mipmap minification filter and restore the filter afterwards.
+ *
+ * GL extension entry points also come from here; libGLESv2_tegra.so (our
+ * GLES shim, see gles2_tegra_ds.c) may wrap some of them.
  * Everything else goes straight to NVIDIA's loader.
  */
 
@@ -31,7 +34,8 @@
 
 /* Full paths: a bare name is looked up in /vendor/lib, not in egl/. */
 #define NV_EGL_LIB "/vendor/lib/egl/libEGL_tegra_nv.so"
-#define NV_GLES2_LIB "/vendor/lib/egl/libGLESv2_tegra.so"
+/* Our GLES shim, in front of NVIDIA's libGLESv2_tegra_nv.so. */
+#define GLES2_LIB "/vendor/lib/egl/libGLESv2_tegra.so"
 
 static void *nv_egl;
 static pthread_once_t nv_once = PTHREAD_ONCE_INIT;
@@ -149,10 +153,10 @@ static pthread_once_t gl_once = PTHREAD_ONCE_INIT;
 
 static void gl_load(void)
 {
-    void *h = dlopen(NV_GLES2_LIB, RTLD_NOW | RTLD_LOCAL);
+    void *h = dlopen(GLES2_LIB, RTLD_NOW | RTLD_LOCAL);
 
     if (!h) {
-        ALOGE("cannot load %s: %s", NV_GLES2_LIB, dlerror());
+        ALOGE("cannot load %s: %s", GLES2_LIB, dlerror());
         return;
     }
     gl.GetIntegerv = dlsym(h, "glGetIntegerv");
@@ -209,6 +213,19 @@ static EGLImageKHR shim_eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenu
     return img;
 }
 
+static void *(*gles2_wrap)(const char *, void *);
+static pthread_once_t wrap_once = PTHREAD_ONCE_INIT;
+
+static void wrap_load(void)
+{
+    void *h = dlopen(GLES2_LIB, RTLD_NOW | RTLD_LOCAL);
+
+    if (h)
+        gles2_wrap = (void *(*)(const char *, void *))dlsym(h, "gles2_tegra_wrap_proc");
+    if (!gles2_wrap)
+        ALOGE("no gles2_tegra_wrap_proc in %s", GLES2_LIB);
+}
+
 __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char *name)
 {
     static __eglMustCastToProperFunctionPointerType (*real)(const char *);
@@ -220,9 +237,18 @@ __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char *name)
     if (!real)
         return NULL;
     p = real(name);
-    if (p && name && !strcmp(name, "eglCreateImageKHR")) {
+    if (!p || !name)
+        return p;
+    if (!strcmp(name, "eglCreateImageKHR")) {
         real_create_image = (PFNEGLCREATEIMAGEKHRPROC)p;
         return (__eglMustCastToProperFunctionPointerType)shim_eglCreateImageKHR;
+    }
+    if (name[0] == 'g' && name[1] == 'l') {
+        void *w;
+
+        pthread_once(&wrap_once, wrap_load);
+        if (gles2_wrap && (w = gles2_wrap(name, (void *)p)))
+            return (__eglMustCastToProperFunctionPointerType)w;
     }
     return p;
 }

@@ -11,7 +11,7 @@ Project home, status, install guide, releases and docs: https://github.com/simon
 | Folder | What it is |
 |---|---|
 | `interfaces/` | HIDL graphics: allocator and mapper 2.0 on NVIDIA's gralloc0 (adapters from html6405's `hardware/samsung`, with fixes for NVIDIA's buffer handles), composer 2.1 passthrough with AOSP's `HwcLoader` for NVIDIA's HWC 1.1. |
-| `shims/` | What NVIDIA's Android 5.1 graphics blobs need on Android 14: `android_atomic_*`, the 5.1 `GraphicBuffer` constructor, binder-free stand-ins for `libnvcpl`/`libcplconnectclient`, and `libEGL_tegra.so`, a pass-through in front of NVIDIA's EGL loader that makes ANGLE's texture images work. Wired with `TARGET_LD_SHIM_LIBS`. |
+| `shims/` | What NVIDIA's Android 5.1 graphics blobs need on Android 14: `android_atomic_*`, the 5.1 `GraphicBuffer` constructor, binder-free stand-ins for `libnvcpl`/`libcplconnectclient`, `libEGL_tegra.so`, a pass-through in front of NVIDIA's EGL loader that makes ANGLE's texture images work, and `libGLESv2_tegra.so`, a pass-through in front of NVIDIA's GLES 2 library that copies framebuffer regions on the GPU (CSS `backdrop-filter`) and emulates `GL_OES_packed_depth_stencil` (WebGL). The first ones are wired with `TARGET_LD_SHIM_LIBS`. |
 | `audio/` | Audio HAL (HIDL 7.1) for the TLV320AIC325x codec, based on the Android emulator's tinyalsa HAL, with stock Remix OS's mixer routing. Audio policy configuration. |
 | `sensors/` | `sensors.sk1wg`: presents stock's Invensense sensors HAL (device API 0.1) as a 1.3 HAL. |
 | `lights/` | AIDL Lights HAL for the backlight. |
