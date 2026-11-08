@@ -42,6 +42,11 @@ struct DevicePortSink {
 
     static int getLatencyMs(const DeviceAddress &, const AudioConfig &);
     static bool validateDeviceAddress(const DeviceAddress &);
+
+    // sk1wg: AudioPolicy moves the open primary output between the speaker
+    // and the jack with audio patches, not by reopening it: the patch's
+    // sink device sets the route, now and for every sink created later.
+    static void routeTo(const DeviceAddress &);
 };
 
 }  // namespace implementation

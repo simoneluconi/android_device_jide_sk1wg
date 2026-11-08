@@ -18,6 +18,7 @@
 #include <system/audio.h>
 #include PATH(APM_XSD_ENUMS_H_FILENAME)
 #include "primary_device.h"
+#include "device_port_sink.h"
 #include "stream_in.h"
 #include "stream_out.h"
 #include "talsa.h"
@@ -149,6 +150,10 @@ Return<void> Device::createAudioPatch(const hidl_vec<AudioPortConfig>& sources,
             }
         }
 
+        if (patch.sink.ext.getDiscriminator() ==
+                AudioPortExtendedInfo::hidl_discriminator::device) {
+            DevicePortSink::routeTo(patch.sink.ext.device());
+        }
         _hidl_cb(Result::OK, handle);
     } else {
         _hidl_cb(FAILURE(Result::NOT_SUPPORTED), 0);
@@ -171,6 +176,10 @@ Return<void> Device::updateAudioPatch(AudioPatchHandle previousPatchHandle,
             patch.sink = sinks[0];
             i->second = patch;
 
+            if (patch.sink.ext.getDiscriminator() ==
+                    AudioPortExtendedInfo::hidl_discriminator::device) {
+                DevicePortSink::routeTo(patch.sink.ext.device());
+            }
             _hidl_cb(Result::OK, previousPatchHandle);
         } else {
             _hidl_cb(Result::NOT_SUPPORTED, previousPatchHandle);

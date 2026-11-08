@@ -16,6 +16,7 @@
 
 #include PATH(APM_XSD_ENUMS_H_FILENAME)
 #include <android-base/properties.h>
+#include <atomic>
 #include <chrono>
 #include <thread>
 #include <log/log.h>
@@ -44,6 +45,15 @@ namespace implementation {
 namespace {
 
 constexpr int kMaxJitterUs = 3000;  // Enforced by CTS, should be <= 6ms
+
+// sk1wg: the output device of the last audio patch: -1 none yet, 0 the
+// speaker, 1 the jack (see DevicePortSink::routeTo()).
+std::atomic<int> gPatchedJack{-1};
+
+bool isJack(const xsd::AudioDevice device) {
+    return device == xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADPHONE ||
+           device == xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADSET;
+}
 
 struct TinyalsaSink : public DevicePortSink {
     TinyalsaSink(unsigned pcmCard, unsigned pcmDevice,
@@ -383,12 +393,13 @@ DevicePortSink::create(size_t readerBufferSizeHint,
             auto sinkptr = TinyalsaSink::create(talsa::kPcmCard, talsa::kPcmDevice,
                                                 cfg, readerBufferSizeHint, initialFrames);
             if (sinkptr != nullptr) {
-                // sk1wg: the speaker or the jack, not both. AudioPolicy
-                // reopens the output when the route changes (jack in/out).
-                const auto device = xsd::stringToAudioDevice(address.deviceType);
-                const bool jack =
-                        device == xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADPHONE ||
-                        device == xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADSET;
+                // sk1wg: the speaker or the jack, not both. The stream's
+                // address is the device it was opened on (the speaker for
+                // the primary output); the last audio patch wins.
+                const int patched = gPatchedJack.load();
+                const bool jack = patched >= 0
+                        ? patched
+                        : isJack(xsd::stringToAudioDevice(address.deviceType));
                 talsa::setOutputRoute(!jack, jack);
                 return sinkptr;
             } else {
@@ -427,6 +438,24 @@ int DevicePortSink::getLatencyMs(const DeviceAddress &address, const AudioConfig
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_TELEPHONY_TX:
     case xsd::AudioDevice::AUDIO_DEVICE_OUT_BUS:
         return NullSink::getLatencyMs(cfg);
+    }
+}
+
+void DevicePortSink::routeTo(const DeviceAddress &address) {
+    const auto device = xsd::stringToAudioDevice(address.deviceType);
+    switch (device) {
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_DEFAULT:
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_SPEAKER:
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADPHONE:
+    case xsd::AudioDevice::AUDIO_DEVICE_OUT_WIRED_HEADSET: {
+        const bool jack = isJack(device);
+        gPatchedJack = jack;
+        talsa::setOutputRoute(!jack, jack);
+        ALOGI("%s: output to the %s", __func__, jack ? "jack" : "speaker");
+        break;
+    }
+    default:
+        break;
     }
 }
 
