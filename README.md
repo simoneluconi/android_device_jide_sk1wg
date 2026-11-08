@@ -2,9 +2,9 @@
 
 LineageOS 21 (Android 14) device tree for the **Jide Remix Ultra Tablet** (REMIX SK1WG, `sk1wg`): NVIDIA Tegra 4 (T114) on the `macallan` reference board, on top of LineageOS-UL.
 
-Project home, status, test guide and docs: https://github.com/simoneluconi/JideRemixTabletRevived
+Project home, status, install guide, releases and docs: https://github.com/simoneluconi/JideRemixTabletRevived
 
-> Under development: the kernel is RAM-booted with `fastboot boot`, SELinux is permissive, and some bring-up aids are on (see "Before a release" below).
+> Released: installable builds are on the project's Releases page. SELinux is still permissive and the camera does not work yet.
 
 ## What is here
 
@@ -49,11 +49,9 @@ Proprietary files are never committed. `extract-files.sh <dir holding system/>` 
 
 The fstab mounts no eMMC partition other than APP (system), CAC (system_ext), UDA (data) and MSC (misc). Never add a partition that the bootloader reads, and never write USP (`/staging`): NVIDIA's bootloader applies a bootloader update it finds there. The anti-brick rules are in the main repo's `docs/INSTALL.md`.
 
-## Before a release
+## Development builds
 
-- `WITH_ADB_INSECURE` (`lineage_sk1wg.mk`) and adb in the "mtp" configuration (`rootdir/etc/init.macallan.usb.rc`) on debuggable builds.
-- `oops=panic` in `BOARD_KERNEL_CMDLINE`.
-- SELinux permissive, and `SELINUX_IGNORE_NEVERALLOWS`.
+`SK1WG_DEVEL=true` in the build environment turns on the bring-up aids: `WITH_ADB_INSECURE` (`lineage_sk1wg.mk`), adb kept in the "mtp" USB configuration (`ro.vendor.sk1wg.devel`, `rootdir/etc/init.macallan.usb.rc`) and `oops=panic tegra_panic_to_bootloader` on the kernel command line (`BoardConfig.mk`). Releases are built without it. SELinux is permissive in both (`SELINUX_IGNORE_NEVERALLOWS` too).
 
 ## Licence
 
