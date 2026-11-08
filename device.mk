@@ -21,6 +21,13 @@ PRODUCT_AAPT_PREF_CONFIG := hdpi
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
+# Development builds (SK1WG_DEVEL=true in the environment; see also
+# BoardConfig.mk and lineage_sk1wg.mk): init.macallan.usb.rc keeps adb in
+# the "mtp" USB configuration.
+ifeq ($(SK1WG_DEVEL),true)
+PRODUCT_VENDOR_PROPERTIES += ro.vendor.sk1wg.devel=1
+endif
+
 # Shipping API: the device launched with Android 5.1 (API 22). The legacy
 # HALs below need the relaxed VINTF checks LineageOS-UL keeps for that.
 PRODUCT_SHIPPING_API_LEVEL := 22
