@@ -4,9 +4,12 @@
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
-    <!-- Where the wired charging ripple starts: the charging connector,
-         on the upper part of the right edge, in the panel's natural
-         (landscape) orientation. SystemUI maps it for the other rotations. -->
+    <!-- Where the wired charging ripple starts, in the panel's natural (landscape)
+         orientation; SystemUI maps it for the other rotations. Both connectors are on
+         the right edge: micro USB near the top, the power connector (reported as AC,
+         the palmas VAC input) just below the middle. -->
     <item name="physical_charger_port_location_normalized_x" type="dimen" format="float">1</item>
-    <item name="physical_charger_port_location_normalized_y" type="dimen" format="float">0.15</item>
+    <item name="physical_charger_port_location_normalized_y" type="dimen" format="float">0.1</item>
+    <item name="physical_charger_port_ac_location_normalized_x" type="dimen" format="float">1</item>
+    <item name="physical_charger_port_ac_location_normalized_y" type="dimen" format="float">0.6</item>
 </resources>
