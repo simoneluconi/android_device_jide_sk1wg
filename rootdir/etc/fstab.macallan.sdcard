@@ -1,6 +1,7 @@
 # Test fstab for the sk1wg: the whole LineageOS on the microSD card, the
 # eMMC untouched (Remix OS stays as it is). Built with SK1WG_SDCARD_ROOT=true,
-# booted only with "fastboot boot" (see docs/BRINGUP.md).
+# booted only with "fastboot boot" (see JideRemixTabletRevived's
+# docs/BRINGUP.md).
 # The card is prepared from the mini recovery (writes to mmcblk1 only):
 #   p1  system      >= 1000 MB   (system.img, vendor included)
 #   p2  system_ext  >=  800 MB   (system_ext.img)

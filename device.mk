@@ -7,7 +7,7 @@
 #
 # Display through NVIDIA's GLES, gralloc and hwcomposer (HIDL passthrough
 # adapters and shims), audio, Wi-Fi, Bluetooth, sensors, lights and power.
-# Status and history: docs/BRINGUP.md. Wi-Fi Direct is not declared: the
+# Status and history: JideRemixTabletRevived's docs/BRINGUP.md. Wi-Fi Direct is not declared: the
 # supplicant runs with p2p_disabled=1.
 #
 

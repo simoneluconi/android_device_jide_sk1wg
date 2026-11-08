@@ -4,7 +4,8 @@
 #
 # Board configuration for the Jide Remix Ultra Tablet (REMIX SK1WG):
 # NVIDIA Tegra 4 (T114, 4x Cortex-A15, ARMv7), "macallan" reference board,
-# NVIDIA 3.4 kernel, stock partitions (never repartitioned, see CLAUDE.md).
+# NVIDIA 3.4 kernel, stock partitions (never repartitioned: see the
+# anti-brick rules in JideRemixTabletRevived's docs/INSTALL.md).
 #
 
 DEVICE_PATH := device/jide/sk1wg

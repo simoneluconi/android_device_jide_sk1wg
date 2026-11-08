@@ -1,0 +1,4 @@
+# Local test programs and scripts for the bring-up
+/tools-local/
+# Developer adb keys (they would be baked into builds)
+adb_keys
