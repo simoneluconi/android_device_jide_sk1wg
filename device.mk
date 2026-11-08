@@ -147,6 +147,11 @@ PRODUCT_PACKAGES += \
     tinymix \
     tinyplay
 
+# A sound recorder: the mini tablet config leaves LineageOS's Recorder out,
+# and the tablet has a microphone
+PRODUCT_PACKAGES += \
+    Recorder
+
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/audio/policy/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml \
     $(LOCAL_PATH)/audio/policy/primary_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/primary_audio_policy_configuration.xml \
