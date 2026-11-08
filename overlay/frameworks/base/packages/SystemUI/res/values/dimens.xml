@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2026 The JideRemixTabletRevived Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- Where the wired charging ripple starts: the charging connector,
+         on the upper part of the right edge, in the panel's natural
+         (landscape) orientation. SystemUI maps it for the other rotations. -->
+    <item name="physical_charger_port_location_normalized_x" type="dimen" format="float">1</item>
+    <item name="physical_charger_port_location_normalized_y" type="dimen" format="float">0.15</item>
+</resources>
