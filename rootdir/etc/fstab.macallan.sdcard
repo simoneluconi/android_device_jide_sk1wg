@@ -14,4 +14,5 @@
 
 /devices/platform/tegra-ehci.0*  auto      auto    defaults                                           voldmanaged=usb:auto
 
-/dev/block/zram0              none         swap    defaults                                           zramsize=536870912
+# zram: as in fstab.macallan (max_comp_streams=-1 for 3.4's zram)
+/dev/block/zram0              none         swap    defaults                                           zramsize=50%,max_comp_streams=-1
