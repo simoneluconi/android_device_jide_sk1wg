@@ -8,7 +8,12 @@
  * getHalDeviceVersion() >= SENSORS_DEVICE_API_VERSION_1_3"):
  *   - batch() becomes setDelay() (no hardware FIFO, so no batching);
  *   - flush() queues the META_DATA_FLUSH_COMPLETE event the framework
- *     waits for and poll() returns it before the next sensor events.
+ *     waits for and poll() returns it before the next sensor events;
+ *   - event timestamps move from CLOCK_MONOTONIC, which the stock HAL
+ *     uses, to CLOCK_BOOTTIME, which Android requires. The two drift
+ *     apart by every second spent in suspend; without this the window
+ *     manager compares sensor time with touch time (elapsedRealtime) and,
+ *     after the first suspend, refuses to auto-rotate after any touch.
  * Selected with ro.hardware.sensors=sk1wg (device.mk).
  */
 
@@ -19,6 +24,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <hardware/hardware.h>
 #include <hardware/sensors.h>
@@ -111,9 +117,33 @@ static int wrap_flush(struct sensors_poll_device_1 *dev __unused, int handle)
     return ret;
 }
 
+/*
+ * CLOCK_BOOTTIME - CLOCK_MONOTONIC: the time spent in suspend. It only
+ * changes across a suspend, so it is kept unless it moved by more than
+ * 1 ms; otherwise the few hundred ns between the two clock reads would
+ * jitter the timestamps.
+ */
+#define BOOT_OFFSET_SLACK_NS 1000000LL
+static int64_t g_boot_offset_ns;
+
+static int64_t boot_offset_ns(void)
+{
+    struct timespec boot, mono;
+    int64_t off, diff;
+
+    clock_gettime(CLOCK_MONOTONIC, &mono);
+    clock_gettime(CLOCK_BOOTTIME, &boot);
+    off = (int64_t)(boot.tv_sec - mono.tv_sec) * 1000000000LL + (boot.tv_nsec - mono.tv_nsec);
+    diff = off - g_boot_offset_ns;
+    if (diff > BOOT_OFFSET_SLACK_NS || diff < -BOOT_OFFSET_SLACK_NS)
+        g_boot_offset_ns = off;
+    return g_boot_offset_ns;
+}
+
 static int wrap_poll(struct sensors_poll_device_t *dev __unused, sensors_event_t *data, int count)
 {
     int n = 0;
+    int64_t off;
 
     pthread_mutex_lock(&g_lock);
     while (g_npending > 0 && n < count) {
@@ -129,7 +159,15 @@ static int wrap_poll(struct sensors_poll_device_t *dev __unused, sensors_event_t
     if (n > 0)
         return n;
 
-    return g_stock_dev->poll(g_stock_dev, data, count);
+    n = g_stock_dev->poll(g_stock_dev, data, count);
+    if (n <= 0)
+        return n;
+    /* poll() runs on SensorService's single poll thread: no lock needed */
+    off = boot_offset_ns();
+    for (int i = 0; i < n; i++)
+        if (data[i].type != SENSOR_TYPE_META_DATA)
+            data[i].timestamp += off;
+    return n;
 }
 
 static int wrap_close(struct hw_device_t *dev)
